@@ -15,9 +15,9 @@ MATCH (snd:Customer {customerId: 5}), (rcv:Customer {customerId: 2}), (b:Branch 
 CREATE (s:Shipment {shipmentId: 10001, bookingDate: date('2026-10-27'), shipmentType: 'STANDARD',
                     weightKg: 3.50, totalAmount: 150.00})
 CREATE (snd)-[:SENT]->(s), (s)-[:ADDRESSED_TO]->(rcv), (s)-[:BOOKED_AT]->(b)
-CREATE (s)-[:CONTAINS]->(:Package {packageId: 50002, description: 'Gift box', dimensions: '30x30x15 cm', packageType: 'Box', weightKg: 2.00})
-CREATE (s)-[:CONTAINS]->(:Package {packageId: 50003, description: 'Greeting cards', dimensions: '25x15x5 cm', packageType: 'Envelope', weightKg: 1.50})
-RETURN s;
+CREATE (s)-[:CONTAINS]->(p1:Package {packageId: 50002, description: 'Gift box', dimensions: '30x30x15 cm', packageType: 'Box', weightKg: 2.00})
+CREATE (s)-[:CONTAINS]->(p2:Package {packageId: 50003, description: 'Greeting cards', dimensions: '25x15x5 cm', packageType: 'Envelope', weightKg: 1.50})
+RETURN s, snd, rcv, b, p1, p2;
 
 // ---- C3. READ: track one shipment ---------------------------
 MATCH (s:Shipment {shipmentId: 1})-[:HAS_EVENT]->(t:TrackingEvent)-[:AT]->(b:Branch)
