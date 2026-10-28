@@ -1,1 +1,26 @@
-<!doctype html><title>customers</title>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Customers · Parcelly</title>
+  <meta name="description" content="Find, add and manage customers.">
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+<main id="main">
+  <div class="page-head"><h1>Customers</h1><button type="button" id="add"></button></div>
+  <div id="msg" hidden></div>
+  <div class="card">
+    <label>Search <input id="q" type="search" placeholder="Name, email, phone or city" autocomplete="off"></label>
+  </div>
+  <div class="card" id="list" aria-live="polite"></div>
+</main>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/js/customerform.js"></script>
+<script src="/js/pages/customers.js"></script>
+</body>
+</html>

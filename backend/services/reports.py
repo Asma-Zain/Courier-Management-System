@@ -6,7 +6,7 @@ from ..errors import NotFound
 
 def _r(id_, slug, group, title, description, columns, cypher, chart=None, param=None):
     return {"id": id_, "slug": slug, "group": group, "title": title, "description": description,
-            "columns": [{"key": k, "label": l, "format": f} for k, l, f in columns],
+            "columns": [{"key": k, "label": lbl, "format": f} for k, lbl, f in columns],
             "chart": chart, "param": param, "cypher": " ".join(cypher.split()).strip()}
 
 

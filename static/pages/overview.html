@@ -1,1 +1,33 @@
-<!doctype html><title>Overview</title>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Overview · Parcelly</title>
+  <meta name="description" content="Operations overview: active shipments, delays, outstanding payments and recent activity.">
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+<main id="main">
+  <div class="page-head"><h1>Overview</h1></div>
+  <div id="msg" hidden></div>
+  <div class="kpis" id="kpis" aria-busy="true"></div>
+  <div class="grid">
+    <section class="card" aria-labelledby="h-attn"><div class="card-head"><h2 id="h-attn">Needs attention</h2><a href="/shipments?status=DELAYED" class="small">Delayed</a></div><div id="attention"></div></section>
+    <section class="card" aria-labelledby="h-recent"><div class="card-head"><h2 id="h-recent">Recent activity</h2><a href="/shipments" class="small">All shipments</a></div><div id="recent"></div></section>
+  </div>
+  <section class="card" aria-labelledby="h-hubs">
+    <div class="card-head"><h2 id="h-hubs">Where shipments are waiting</h2><a href="/network" class="small">Open network</a></div>
+    <div class="graph-wrap"><div class="graph compact" id="hubmap" role="img" aria-label="Map of hubs and branches with the number of shipments waiting at each"></div></div>
+    <p class="hint">The number in brackets is the shipments currently waiting there. Click a hub to see who is waiting.</p>
+  </section>
+  <div class="system-strip" id="system"></div>
+</main>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/vendor/vis-network.min.js"></script>
+<script src="/js/pages/overview.js"></script>
+</body>
+</html>

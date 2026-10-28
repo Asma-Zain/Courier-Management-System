@@ -1,0 +1,14 @@
+# SITE_ADDRESS is the hostname (for example 85-211-182-145.sslip.io). Caddy gets a certificate automatically.
+{$SITE_ADDRESS:localhost} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	reverse_proxy web:8000
+}

@@ -1,6 +1,14 @@
 .venv
 .git
+.github
 app/.env
 .env
+*.env
 __pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
 tests
+docs
+*.md
+node_modules

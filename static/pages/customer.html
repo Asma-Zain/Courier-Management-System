@@ -1,1 +1,27 @@
-<!doctype html><title>customer</title>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Customer · Parcelly</title>
+  <meta name="description" content="Customer profile and shipments.">
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+<main id="main">
+  <a class="crumb" href="/customers">Back to customers</a>
+  <div id="msg" hidden></div>
+  <div id="result" hidden>
+    <div class="page-head"><h1 id="name"></h1><div class="row"><button type="button" class="secondary" id="edit">Edit</button><button type="button" class="danger" id="delete">Delete</button></div></div>
+    <div class="card"><h2>Profile</h2><dl class="facts" id="facts"></dl></div>
+    <div class="card"><h2>Shipments</h2><div id="shipments"></div></div>
+  </div>
+</main>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/js/customerform.js"></script>
+<script src="/js/pages/customer.js"></script>
+</body>
+</html>

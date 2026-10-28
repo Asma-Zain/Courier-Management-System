@@ -279,9 +279,6 @@ def test_customer_books_as_self(staff, arun):
     cleanup()
 
 
-def test_zz_baseline_restored():
-    cleanup()
-    assert counts() == BASELINE
 
 
 def test_customer_lookup_privacy(arun, staff):

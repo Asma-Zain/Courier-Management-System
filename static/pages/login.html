@@ -1,1 +1,28 @@
-<!doctype html><title>login</title>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log in · Parcelly</title>
+  <meta name="description" content="Log in to Parcelly to track and manage parcels.">
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+<main id="main" class="login-box">
+  <img class="mascot mascot-bob" src="/img/mascot.svg" alt="Smiling cardboard parcel waving">
+  <h1>Parcelly</h1>
+  <form class="card" id="login-form" novalidate>
+    <label>Email <input id="email" type="email" required autocomplete="username" placeholder="you@example.com"></label>
+    <div class="form-error" id="form-error" role="alert" hidden></div>
+    <p><button type="submit">Log in</button></p>
+    <p class="muted small">Demo login: email only, no password.</p>
+    <div id="demo" hidden><p class="small muted">Try one:</p><div class="chips" id="samples"></div></div>
+  </form>
+  <p class="small"><a href="/docs" id="docs-link" hidden>API docs</a></p>
+</main>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/pages/login.js"></script>
+</body>
+</html>

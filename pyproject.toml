@@ -1,0 +1,13 @@
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = [".venv", "static", "app"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501", "E701", "E702", "E731"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -p no:logging"
+markers = ["e2e: browser smoke test (needs Chrome and Aura credentials)"]

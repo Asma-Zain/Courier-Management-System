@@ -1,1 +1,31 @@
-<!doctype html><title>shipments</title>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shipments · Parcelly</title>
+  <meta name="description" content="Search, filter and open shipments.">
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+<main id="main">
+  <div class="page-head"><h1 id="title">Shipments</h1></div>
+  <div id="msg" hidden></div>
+  <div class="card">
+    <div class="row">
+      <label>Search <input id="q" type="search" placeholder="ID or person name" autocomplete="off"></label>
+      <label>Sort by <select id="sort"><option value="newest">Newest</option><option value="status">Status</option><option value="amount">Amount</option></select></label>
+      <span id="pay-filter"></span>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Filter by status"></div>
+  </div>
+  <div id="list" aria-live="polite"></div>
+  <div id="pager"></div>
+</main>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/js/pages/shipments.js"></script>
+</body>
+</html>

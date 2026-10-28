@@ -1,1 +1,45 @@
-<!doctype html><title>network</title>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Network · Parcelly</title>
+  <meta name="description" content="Hubs, branches, routes and hub impact.">
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+<main id="main">
+  <div class="page-head"><h1>Network</h1></div>
+  <div id="msg" hidden></div>
+  <div class="layout-side">
+    <section class="card">
+      <div id="tabs"></div>
+      <div id="panel-routes" role="tabpanel" aria-labelledby="tab-routes">
+        <div class="stack">
+          <label>From <select id="from"></select></label>
+          <div class="row"><button type="button" class="secondary" id="swap" aria-label="Swap From and To">Swap</button></div>
+          <label>To <select id="to"></select></label>
+        </div>
+        <div class="form-error" id="route-error" role="alert" hidden></div>
+        <div id="results" aria-live="polite"></div>
+      </div>
+      <div id="panel-impact" role="tabpanel" aria-labelledby="tab-impact" hidden>
+        <label>Hub or branch <select id="hub"></select></label>
+        <p class="hint">Or click a location on the map.</p>
+        <div id="impact" aria-live="polite"></div>
+      </div>
+    </section>
+    <section class="card">
+      <div class="graph-wrap"><div class="graph tall" id="graph" role="img" aria-label="Network map of hubs and branches with distances in kilometres"></div></div>
+      <div class="legend"><span><i class="l-hub"></i>Hub</span><span><i class="l-branch"></i>Branch</span><span class="muted">Lines show distance in km. Select a route to highlight it.</span></div>
+    </section>
+  </div>
+</main>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/vendor/vis-network.min.js"></script>
+<script src="/js/pages/network.js"></script>
+</body>
+</html>

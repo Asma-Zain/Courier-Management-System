@@ -1,1 +1,31 @@
-<!doctype html><title>account</title>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Account · Parcelly</title>
+  <meta name="description" content="Your profile and account settings.">
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+<main id="main">
+  <div class="page-head"><h1>Account</h1></div>
+  <div id="msg" hidden></div>
+  <div class="card"><h2>Profile</h2><dl class="facts" id="facts"></dl></div>
+  <form class="card" id="edit-card" hidden novalidate>
+    <h2>Contact details</h2>
+    <p class="hint">You can change your phone number and address. Name and email are fixed.</p>
+    <div id="fields"></div>
+    <div class="form-error" id="form-error" role="alert" hidden></div>
+    <button type="submit">Save changes</button>
+  </form>
+  <div class="card"><h2>Session</h2><button type="button" class="secondary" id="logout">Log out</button></div>
+</main>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/js/customerform.js"></script>
+<script src="/js/pages/account.js"></script>
+</body>
+</html>

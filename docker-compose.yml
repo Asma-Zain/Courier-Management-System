@@ -1,9 +1,32 @@
-# Needs only outbound access to Aura (neo4j+s://). Put your reverse proxy / sslip.io hostname in front of port 8000.
-# Secrets come from app/.env (never committed). Set COOKIE_SECURE=true there when served over HTTPS.
+# App + Caddy (automatic HTTPS). Needs only outbound access to Aura (neo4j+s://) and ports 80/443 inbound.
+# Secrets live in app/.env (never committed). Required there: NEO4J_*, APP_SECRET (32+ chars).
+# Set SITE_ADDRESS in the shell or a root .env file, e.g. SITE_ADDRESS=85-211-182-145.sslip.io
 services:
   web:
     build: .
     env_file: app/.env
-    ports:
-      - "8000:8000"
+    environment:
+      APP_ENV: production
+      ALLOWED_ORIGINS: https://${SITE_ADDRESS:-localhost}
+    expose:
+      - "8000"
     restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    depends_on:
+      - web
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

@@ -1,46 +1,69 @@
-# Page / button to API endpoint to Cypher
+# Page, tab and button to endpoint to Cypher
 
-All Cypher is parameterised and lives in `backend/services/`. "Q" ids refer to `03_core_operations.cypher` (C1-C8) and `04_graph_queries.cypher` (G1-G16).
+All Cypher is parameterised and lives in `backend/services/`. "Q" ids refer to `03_core_operations.cypher` (C1-C8) and `04_graph_queries.cypher` (G1-G16). The reports page shows each G-query under **Show query**.
 
-| Page | Button / action | Endpoint | Role | Cypher (service file) | Q |
-| --- | --- | --- | --- | --- | --- |
-| Login | Log in | `POST /api/auth/login` | any | `MATCH (e:Employee {email:$email})` then `MATCH (c:Customer {email:$email})` (`services/auth.py`) | CLI login |
-| Header | Log out | `POST /api/auth/logout` | any | none (clears cookie) | |
-| All pages | (header) | `GET /api/auth/me` | any | `MATCH (e:Employee {employeeId:$id})` / `MATCH (c:Customer {customerId:$id})` | |
-| Home | Track (search) | `GET /api/shipments/{id}` via Track page | any | see Track rows | G2 |
-| Home | "Try: #1 #4" hints | `GET /api/shipments` | any | see list row below | |
-| Home | quick-action cards | none (links to Track, Send, Routes, My Parcels) | any | none | |
-| My Parcels | tabs Active / Delivered / Cancelled | `GET /api/shipments` | any (customers: own only) | list query below, filtered in the browser by current status | |
-| Live Tracking | page load | `GET /api/shipments/{id}` + `GET /api/shipments/{id}/track` | any (access checked) | same as Track (G2, C3); route drawn from the scan places | G2, C3 |
-| Delivered | page load | `GET /api/shipments/{id}` | any (access checked) | G2; page only shows when current status is DELIVERED | G2 |
-| Dashboard | page load (counts) | `GET /api/dashboard` | staff | `MATCH (n) RETURN labels(n)[0], count(*)`; statuses: `MATCH (s)-[:HAS_EVENT]->(t) WHERE NOT (t)-[:NEXT]->() RETURN t.status, count(s)`; outstanding: shipment total minus PAID `Payment` (`services/dashboard.py`) | G3, G12 |
-| Dashboard | status board | `GET /api/shipments/status` | staff | `MATCH (s)-[:HAS_EVENT]->(t)-[:AT]->(b) WHERE NOT (t)-[:NEXT]->()` (`services/shipments.py`) | G3 |
-| Dashboard | shipment list | `GET /api/shipments` | any (customers: own only) | `MATCH (snd)-[:SENT]->(s)-[:ADDRESSED_TO]->(rcv) WHERE $role='STAFF' OR EXISTS{...SENT...} OR EXISTS{...ADDRESSED_TO...}` + current-status `OPTIONAL MATCH` | CLI track |
-| Dashboard (customer) | My profile | `GET /api/customers/{id}` | customer (own) | `MATCH (c:Customer {customerId:$id})` (`services/customers.py`) | |
-| Track | Track | `GET /api/shipments/{id}` | any (access checked) | access check `RETURN <EXISTS{} access> ` then G2 query extended with packages (`collect`), payment, current status | G2 |
-| Track | Track (timeline) | `GET /api/shipments/{id}/track` | any (access checked) | `MATCH (s {shipmentId})-[:HAS_EVENT]->(t)-[:AT]->(b) RETURN ... ORDER BY t.seq` (`services/tracking.py`) | C3 |
-| Track | Track (graph picture) | `GET /api/graph/shipment/{id}` | any (access checked) | `MATCH (s)-[:HAS_EVENT]->(t)-[:AT]->(b) OPTIONAL MATCH (t)-[:NEXT]->(n)` (`services/graph.py`) | G1 |
-| Track | Add event | `POST /api/shipments/{id}/events` | staff | existence checks, then `CREATE (t:TrackingEvent ...) CREATE (s)-[:HAS_EVENT]->(t), (last)-[:NEXT]->(t), (t)-[:AT]->(b), (e)-[:LOGGED]->(t)` in one transaction | C4 |
-| Track | Record payment | `POST /api/shipments/{id}/payment` | staff | check total / existing payment, then `CREATE (p:Payment ...)-[:PAYS_FOR]->(s)`; id = max+1 (`services/shipments.py`) | |
-| Book | Book shipment | `POST /api/shipments` | any (customers send as themselves) | one write tx: existence checks, `CREATE (s:Shipment)`, `SENT`, `ADDRESSED_TO`, `BOOKED_AT`, first `BOOKED` event, `UNWIND` packages `CREATE (s)-[:CONTAINS]->(:Package)`; ids = max+1 | C2 |
-| Book | (receiver field) | `GET /api/customers/lookup?email=` | any | `MATCH (c:Customer {email:$email}) RETURN id, name, city` | |
-| Book / Routes / Track | dropdowns | `GET /api/branches` | any | `MATCH (b:Branch) RETURN ...` (`services/branches.py`) | |
-| Book (staff) | sender dropdown | `GET /api/customers` | staff | `MATCH (c:Customer) RETURN ...` | |
-| Routes | Find routes | `GET /api/routes/fewest-hops` | any | `shortestPath((a)-[:ROUTE_TO*]-(b))` (`services/routes.py`) | G4 |
-| Routes | Find routes | `GET /api/routes/fewest-km` | any | `(a)-[:ROUTE_TO*1..5]-(b)` + `single()` no-repeat filter + `reduce()` km, `ORDER BY km LIMIT 3` | G5 |
-| Routes | network picture | `GET /api/graph/network` | any | `MATCH (a)-[r:ROUTE_TO]->(b) RETURN a, b, r.km` (`services/graph.py`) | |
-| Hub impact | Show impact | `GET /api/hubs/{name}/impact` | staff | `MATCH (s)-[:HAS_EVENT]->(t)-[:AT]->(h {name:$hub}), (s)-[:ADDRESSED_TO]->(r) WHERE NOT (t)-[:NEXT]->()` | G6 |
-| Reports | Busiest locations | `GET /api/reports/busiest-locations` | staff | `MATCH (t)-[:AT]->(b) RETURN b.name, count(t)` | G7 |
-| Reports | Customer network | `GET /api/reports/customer-network?customer_id=` | staff | 2-hop `SENT/ADDRESSED_TO` chain, `DISTINCT` | G8 |
-| Reports | Delayed | `GET /api/reports/delayed` | staff | `(t:TrackingEvent {status:'DELAYED'}) WHERE NOT (t)-[:NEXT]->()` | G9 |
-| Reports | Branch performance | `GET /api/reports/branch-performance` | staff | `MATCH (s)-[:BOOKED_AT]->(b) RETURN count(s), sum(s.totalAmount)` | G10 |
-| Reports | Employee activity | `GET /api/reports/employee-activity` | staff | `MATCH (e)-[:LOGGED]->(t) RETURN count(t)` | G11 |
-| Reports | Payments | `GET /api/reports/payments` | staff | `OPTIONAL MATCH (pay)-[:PAYS_FOR]->(s)`, paid only when `status='PAID'` | G12 |
-| Reports | Packages per shipment | `GET /api/reports/packages-per-shipment` | staff | `MATCH (s)-[:CONTAINS]->(p) RETURN count, sum, max` | G13 |
-| Reports | Heavier than average | `GET /api/reports/heavier-than-average` | staff | `WITH avg(s.weightKg) AS avgKg MATCH (x) WHERE x.weightKg > avgKg` | G14 |
-| Reports | Sent / received | `GET /api/reports/customer-activity` | staff | two `CALL { WITH c ... }` subqueries | G15 |
-| Reports | Hours tracked | `GET /api/reports/tracking-duration` | staff | `min/max(t.eventTime)`, `duration.inSeconds` | G16 |
-| Customers | list | `GET /api/customers` | staff | `MATCH (c:Customer) RETURN ...` | |
-| Customers | Create customer | `POST /api/customers` | staff | `CREATE (c:Customer {customerId: coalesce($customerId, max+1), ...})`; duplicate -> `ConstraintError` -> 409 | C1, C7 |
-| Customers | Save changes (edit) | `PATCH /api/customers/{id}` | staff / own | `MATCH (c {customerId:$id}) SET c += $changes` (phone and address only) | C5 |
-| Customers | Delete | `DELETE /api/customers/{id}` | staff | check `SENT` / `ADDRESSED_TO` links, 409 if any, else `DETACH DELETE c` | C6 |
+## Everyone
+
+| Page (URL) | Action | Endpoint | Cypher (service file) | Q |
+| --- | --- | --- | --- | --- |
+| Login (`/login`) | Log in | `POST /api/auth/login` | `MATCH (e:Employee {email:$email})` then `MATCH (c:Customer {email:$email})` (`services/auth.py`) | CLI login |
+| Login | demo chips / docs link | `GET /api/auth/config` | none | |
+| Every page (header) | session / account menu | `GET /api/auth/me` | `MATCH (e:Employee {employeeId:$id}) OPTIONAL MATCH (e)-[:WORKS_AT]->(b)` / `MATCH (c:Customer {customerId:$id})` | |
+| Account menu | Log out | `POST /api/auth/logout` | none (clears cookie) | |
+| Header search | shipment ID | navigates to `/shipments/{id}` (a name opens `/shipments?q=`) | none | |
+| Home (customer, `/`) | "Your parcels in progress" | `GET /api/shipments?status=ACTIVE&pageSize=3` | list query below, scoped by `EXISTS {}` | |
+| Shipments (`/shipments`) | list, search, status chips, sort, paging | `GET /api/shipments?q&status&payment&sort&page&pageSize` | `MATCH (snd)-[:SENT]->(s)-[:ADDRESSED_TO]->(rcv) WHERE $role='STAFF' OR EXISTS{(:Customer {customerId:$cid})-[:SENT]->(s)} OR EXISTS{(s)-[:ADDRESSED_TO]->(:Customer {customerId:$cid})}` + name search + current status (`OPTIONAL MATCH (s)-[:HAS_EVENT]->(cur) WHERE NOT (cur)-[:NEXT]->()`) + PAID payment; filter/sort/page in Python (`services/shipments.py`) | G3 |
+| Shipment detail (`/shipments/{id}`) | page load | `GET /api/shipments/{id}` | access check (`RETURN <EXISTS{} access>`), then G2 extended with packages (`collect`), payment, current status | G2 |
+| Shipment detail > Journey | timeline and route | `GET /api/shipments/{id}/track` | `MATCH (s {shipmentId})-[:HAS_EVENT]->(t)-[:AT]->(b) OPTIONAL MATCH (e:Employee)-[:LOGGED]->(t) ... ORDER BY t.seq` (`services/tracking.py`) | C3 |
+| Shipment detail > Graph | graph view | `GET /api/graph/shipment/{id}` | `MATCH (s)-[:HAS_EVENT]->(t)-[:AT]->(b) OPTIONAL MATCH (t)-[:NEXT]->(n)` (`services/graph.py`) | G1 |
+| Book a shipment (`/shipments/new`) step 1 | receiver email check | `GET /api/customers/lookup?email=` (rate limited) | `MATCH (c:Customer {email:$email})`; customers get only `{exists, displayName}` | |
+| Book step 1 (staff) | sender list | `GET /api/customers` | `MATCH (c:Customer) ...` | |
+| Book step 3 | price preview | `GET /api/shipments/rates` | none (rate card in `config.py`) | |
+| Book step 3 | Book shipment | `POST /api/shipments` | one write tx: existence checks, `CREATE (s:Shipment)`, `SENT`, `ADDRESSED_TO`, `BOOKED_AT`, first `BOOKED` event, `UNWIND` packages `CREATE (s)-[:CONTAINS]->(:Package)`, optional `Payment` (staff); ids = `max+1` | C2 |
+| Book (dropdowns) | branches | `GET /api/branches` | `MATCH (b:Branch) RETURN ...` | |
+| Account (`/account`) | profile | `GET /api/auth/me`, `GET /api/customers/{id}` (customer) | see above | |
+| Account (customer) | Save changes | `PATCH /api/customers/{id}` | `MATCH (c {customerId:$id}) SET c += $changes` (phone and address only) | C5 |
+
+## Staff only
+
+| Page (URL) | Action | Endpoint | Cypher (service file) | Q |
+| --- | --- | --- | --- | --- |
+| Overview (`/`) | KPI tiles, needs attention, recent activity, hub map, system strip | `GET /api/overview` | current status per shipment + PAID payments; attention: `t.status='DELAYED' OR due>0`; recent: `MATCH (s)-[:HAS_EVENT]->(t)-[:AT]->(b) OPTIONAL MATCH (e)-[:LOGGED]->(t) ORDER BY t.eventTime DESC LIMIT 8`; waiting per place: `OPTIONAL MATCH ... WHERE NOT (t)-[:NEXT]->() AND NOT t.status IN [...]` (`services/overview.py`) | G3, G12 |
+| Overview | hub map | `GET /api/graph/network` | `MATCH (a:Branch)-[r:ROUTE_TO]->(b:Branch) RETURN a, b, r.km` | |
+| Shipment detail | actions: valid statuses | `GET /api/shipments/{id}/next-statuses` | history `MATCH (s)-[:HAS_EVENT]->(t) ... ORDER BY t.seq` then the status-order rules in `services/status.py`; receiver city branches for delivery | |
+| Shipment detail | Add event | `POST /api/shipments/{id}/events` | order and delivery-place checks, then `CREATE (t:TrackingEvent ...) CREATE (s)-[:HAS_EVENT]->(t), (last)-[:NEXT]->(t), (t)-[:AT]->(b), (e)-[:LOGGED]->(t)` in one tx | C4 |
+| Shipment detail | Record payment | `POST /api/shipments/{id}/payment` | check total and existing payment, then `CREATE (p:Payment ...)-[:PAYS_FOR]->(s)`; id = `max+1` | |
+| Shipment detail | Print label | none (print stylesheet) | none | |
+| Network (`/network`) > Routes | From / To (auto) | `GET /api/routes/fewest-hops` | `shortestPath((a)-[:ROUTE_TO*]-(b))` (`services/routes.py`) | G4 |
+| Network > Routes | From / To (auto) | `GET /api/routes/fewest-km` | `(a)-[:ROUTE_TO*1..5]-(b)` + `single()` no-repeat filter + `reduce()` km, `ORDER BY km LIMIT 3` | G5 |
+| Network | map | `GET /api/graph/network` | see above | |
+| Network > Hub impact | hub select or map click | `GET /api/hubs/{name}/impact` | `MATCH (s)-[:HAS_EVENT]->(t)-[:AT]->(h {name:$hub}), (s)-[:ADDRESSED_TO]->(r) WHERE NOT (t)-[:NEXT]->()` | G6 |
+| Customers (`/customers`) | list, search | `GET /api/customers` | `MATCH (c:Customer) CALL { WITH c MATCH (s:Shipment) WHERE EXISTS{(c)-[:SENT]->(s)} OR EXISTS{(s)-[:ADDRESSED_TO]->(c)} RETURN count(s) } ...` (`services/customers.py`) | |
+| Customers | Add customer (modal) | `POST /api/customers` | `CREATE (c:Customer {customerId: coalesce($customerId, max+1), ...})`; duplicate id or email gives `ConstraintError` -> 409 | C1, C7 |
+| Customer (`/customers/{id}`) | profile | `GET /api/customers/{id}` | `MATCH (c:Customer {customerId:$id})` | |
+| Customer | their shipments | `GET /api/shipments?customerId=` | list query with `snd.customerId=$customerId OR rcv.customerId=$customerId` | |
+| Customer | Edit (modal) | `PATCH /api/customers/{id}` | `SET c += $changes` | C5 |
+| Customer | Delete (confirm dialog) | `DELETE /api/customers/{id}` | check `SENT` / `ADDRESSED_TO`, 409 if any, else `DETACH DELETE c` | C6 |
+| Reports (`/reports/{slug}`) | catalogue | `GET /api/reports` | none (registry in `services/reports.py`) | |
+| Reports | run (auto on selection) | `GET /api/reports/{slug}` | see the G-queries below | |
+| Reports | Show query | (text from the catalogue) | the Cypher of the selected report | |
+| Reports | Export CSV / Print | none (browser) | none | |
+
+### Reports
+
+| Report (group) | slug | Query |
+| --- | --- | --- |
+| Busiest locations (Operations) | `busiest-locations` | G7 `MATCH (t)-[:AT]->(b) RETURN b.name, count(t)` |
+| Customer network (People) | `customer-network` | G8 two-hop `SENT/ADDRESSED_TO` chain, `DISTINCT` |
+| Delayed shipments (Operations) | `delayed` | G9 `(t {status:'DELAYED'}) WHERE NOT (t)-[:NEXT]->()` |
+| Branch performance (Operations) | `branch-performance` | G10 `MATCH (s)-[:BOOKED_AT]->(b) RETURN count(s), sum(s.totalAmount)` |
+| Employee activity (People) | `employee-activity` | G11 `MATCH (e)-[:LOGGED]->(t) RETURN count(t)` |
+| Payments and outstanding (Money) | `payments` | G12 `OPTIONAL MATCH (pay)-[:PAYS_FOR]->(s)`, paid only when `status='PAID'` |
+| Packages per shipment (Shipments) | `packages-per-shipment` | G13 `count`, `sum`, `max` per shipment |
+| Heavier than average (Shipments) | `heavier-than-average` | G14 `WITH avg(s.weightKg) AS avgKg MATCH (x) WHERE x.weightKg > avgKg` |
+| Customer activity (People) | `customer-activity` | G15 two `CALL { WITH c ... }` subqueries |
+| Hours tracked (Shipments) | `tracking-duration` | G16 `min/max(t.eventTime)`, `duration.inSeconds` |
+
+## Operational endpoints (no page)
+
+`GET /healthz` (process alive), `GET /readyz` (runs `RETURN 1` against Neo4j), `GET /docs` (development only unless `ENABLE_DOCS=true`).

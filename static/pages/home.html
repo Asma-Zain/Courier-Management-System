@@ -1,1 +1,33 @@
-<!doctype html><title>home</title>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home · Parcelly</title>
+  <meta name="description" content="Track your parcels and see every scan from booking to delivery.">
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+<main id="main">
+  <section class="hero">
+    <div>
+      <h1>Your parcels, <span class="accent">on their way</span></h1>
+      <p class="lead">Track your parcels and see every scan, from booking to delivery.</p>
+      <form class="search-bar" id="hero-search" role="search" aria-label="Track a shipment"><span id="s-ico"></span><input id="hero-id" type="text" inputmode="numeric" placeholder="Enter shipment ID" aria-label="Shipment ID"><button type="submit" aria-label="Track shipment" id="s-go"></button></form>
+      <p class="hint" id="hero-err" role="alert" hidden></p>
+    </div>
+    <div class="hero-art"><span class="hero-note" aria-hidden="true">On my way!</span><img class="mascot-bob" src="/img/mascot.svg" alt="Smiling cardboard parcel waving"></div>
+  </section>
+  <section aria-labelledby="h-prog">
+    <div class="page-head"><h2 id="h-prog">Your parcels in progress</h2><a class="button" href="/shipments/new">Send a parcel</a></div>
+    <div class="parcel-list" id="list"></div>
+    <p><a href="/shipments">See all my parcels</a></p>
+  </section>
+</main>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/js/pages/home.js"></script>
+</body>
+</html>

@@ -10,7 +10,10 @@ from . import config
 
 log = logging.getLogger("courier.access")
 
-CSP = ("default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; "
+# vis-network (vendored, v9.1.9) injects a fixed set of <style> blocks at runtime. They are allowed by hash so
+# style-src does not need 'unsafe-inline'. Re-derive after upgrading vis-network (see static/vendor/README.md).
+VIS_STYLE_HASHES = "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=' 'sha256-OutIf5hnp68ctx4ThtV5J02g5HTJ5bbu/hkNfqVXWWo=' 'sha256-4cgFR0//m8/eHo2G/esYsuZetUHlzCUWYM59sfgE9zY=' 'sha256-uepMTym1NwItBa/XV6ef6fQobLL0A0CNVDM5km5L+nQ=' 'sha256-gGUn/VMBXCeWm86qX/pOf+4ZDSbe0JcaXXb4rJjw1mA=' 'sha256-QuPewnJYr+SnQiTnCNHFBw99ExTsz9f8w5320PimEPw=' 'sha256-IY7YKNHjbzQ1NfAKrBZvBZohgXMtxrqB9PaqhAaT3vg=' 'sha256-QE7TOEDW7YIlMzvUUnm8boDWeNBN7PBbaaYJjnp34WI='"
+CSP = ("default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-hashes' " + VIS_STYLE_HASHES + "; script-src 'self'; "
        "font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; "
        "form-action 'self'; frame-ancestors 'none'")
 HEADERS = {
