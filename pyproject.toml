@@ -9,5 +9,6 @@ ignore = ["E501", "E701", "E702", "E731"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]          # so plain `pytest` (as in CI) can import the backend package
 addopts = "-q -p no:logging"
 markers = ["e2e: browser smoke test (needs Chrome and Aura credentials)"]
