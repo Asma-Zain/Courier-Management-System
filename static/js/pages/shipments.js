@@ -46,7 +46,7 @@
           filtered ? "Try a different search or filter." : (staff ? "Book the first shipment to get started." : "Send your first parcel."),
           filtered ? null : { href: "/shipments/new", label: staff ? "New shipment" : "Send a parcel" });
       } else if (staff) {
-        ui.table(list, ui.shipmentColumns(), r.items, { href: (row) => `/shipments/${row.shipmentId}` });
+        ui.table(list, ui.shipmentColumns(), r.items, { href: (row) => `/shipments/${row.shipmentId}`, wide: true });
         list.classList.add("card");
       } else {
         list.classList.remove("card");

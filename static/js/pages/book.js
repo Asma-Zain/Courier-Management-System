@@ -4,8 +4,10 @@
   const staff = user.role === "STAFF";
   const flow = ui.$("#flow");
 
-  const [branches, rates, customers] = await Promise.all([
-    api.get("/api/branches"), api.get("/api/shipments/rates"), staff ? api.get("/api/customers") : Promise.resolve([])]);
+  const [allBranches, rates, customers, me] = await Promise.all([
+    api.get("/api/branches"), api.get("/api/shipments/rates"), staff ? api.get("/api/customers") : Promise.resolve([]),
+    staff ? Promise.resolve(null) : api.get(`/api/customers/${user.id}`).catch(() => null)]);
+  const branches = allBranches.filter(b => b.kind === "BRANCH");      // parcels are booked at branches, not hubs
   const DIMS = /^\d+(\.\d+)?\s*[x×]\s*\d+(\.\d+)?\s*[x×]\s*\d+(\.\d+)?\s*(cm)?$/i;
   const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
   const TYPES = { STANDARD: "Standard", EXPRESS: "Express", OVERNIGHT: "Overnight" };
@@ -13,7 +15,8 @@
   const state = {
     step: 1, sender: staff ? (customers[0] || {}).customerId : user.id, receiverEmail: "", receiver: null /* lookup result */,
     packages: [{ description: "", dimensions: "", packageType: "Box", weightKg: "" }],
-    shipmentType: "STANDARD", branchId: (branches.find(b => b.kind === "BRANCH") || branches[0]).branchId,
+    shipmentType: "STANDARD",
+    branchId: ((me && branches.find(b => b.city === me.city)) || branches[0]).branchId,
     payNow: false, payMode: "UPI", payStatus: "PAID",
   };
 
@@ -172,7 +175,7 @@
       ui.el("div", { class: "form-grid" }, ui.field("Shipment type", type, { required: true }), ui.field("Booking branch", branch, { required: true })),
       priceEl, ui.el("hr"), summary,
       staff ? ui.el("div", {}, ui.el("label", { class: "row" }, payNow, "Record the payment now"), payFields) : "",
-      err, ui.el("div", { class: "row" }, ui.el("button", { type: "button", class: "secondary", onclick: step2 }, "Back"), submit)));
+      err, ui.el("div", { class: "row review-actions" }, ui.el("button", { type: "button", class: "secondary", onclick: step2 }, "Back"), submit)));
   }
 
   function success(r) {

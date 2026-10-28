@@ -58,3 +58,9 @@ def write(work: Callable[[Any], Any]) -> Any:
 
 def run(tx, query: str, params: dict | None = None) -> list[dict]:
     return [clean(r.data()) for r in tx.run(query, params or {})]
+
+
+def read_tx(work: Callable[[Any], Any]) -> Any:
+    """Run work(tx) in one read transaction (use run(tx, ...) inside it)."""
+    with get_driver().session(database=config.NEO4J_DATABASE) as session:
+        return session.execute_read(work)

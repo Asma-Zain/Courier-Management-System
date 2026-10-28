@@ -73,6 +73,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 response.headers["Cache-Control"] = "public, max-age=300, must-revalidate"
             else:
                 response.headers["Cache-Control"] = "no-store" if path.startswith("/api/") else "no-cache"
-        log.info("%s %s %s %.0fms", request.method, path, response.status_code,
-                 (time.perf_counter() - start) * 1000)
+        ms = (time.perf_counter() - start) * 1000
+        log.log(logging.WARNING if ms > 1000 else logging.INFO, "%s %s %s %.0fms%s", request.method, path,
+                response.status_code, ms, " SLOW" if ms > 1000 else "")
+        response.headers["Server-Timing"] = f"app;dur={ms:.0f}"
         return response

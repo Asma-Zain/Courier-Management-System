@@ -1,22 +1,26 @@
 from .. import db
 from ..errors import Conflict, NotFound
 from . import status as status_rules
-from .common import require_shipment_access
+from .common import ACCESS, access_params, require_shipment_access
 
 
 def track(user: dict, shipment_id: int) -> list[dict]:
     """C3: ordered journey, access checked."""
-    require_shipment_access(user, shipment_id)
-    return db.read(
-        """
-        MATCH (s:Shipment {shipmentId: $sid})-[:HAS_EVENT]->(t:TrackingEvent)-[:AT]->(b:Branch)
+    rows = db.read(
+        f"""
+        MATCH (s:Shipment {{shipmentId: $sid}})
+        WHERE {ACCESS}
+        MATCH (s)-[:HAS_EVENT]->(t:TrackingEvent)-[:AT]->(b:Branch)
         OPTIONAL MATCH (e:Employee)-[:LOGGED]->(t)
         RETURN t.seq AS step, t.status AS status, t.eventTime AS time, b.name AS place,
                t.note AS note, e.firstName AS loggedBy
         ORDER BY t.seq
         """,
-        {"sid": shipment_id},
+        {"sid": shipment_id, **access_params(user)},
     )
+    if not rows:
+        require_shipment_access(user, shipment_id)   # 404 / 403, or a genuinely empty journey
+    return rows
 
 
 def _context(tx, shipment_id: int) -> dict:
@@ -37,7 +41,7 @@ def _context(tx, shipment_id: int) -> dict:
 
 
 def next_statuses(shipment_id: int) -> dict:
-    ctx = db.write(lambda tx: _context(tx, shipment_id))
+    ctx = db.read_tx(lambda tx: _context(tx, shipment_id))
     return {"current": ctx["history"][-1] if ctx["history"] else None, "allowed": ctx["allowed"],
             "currentPlace": ctx["currentPlace"], "deliveryPlaces": ctx["deliveryPlaces"]}
 

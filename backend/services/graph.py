@@ -1,21 +1,24 @@
 from .. import db
-from .common import require_shipment_access
+from .common import ACCESS, access_params, require_shipment_access
 
 
 def shipment_graph(user: dict, shipment_id: int) -> dict:
     """G1 style journey: Shipment, TrackingEvents, Branches, with NEXT links."""
-    require_shipment_access(user, shipment_id)
     rows = db.read(
-        """
-        MATCH (s:Shipment {shipmentId: $sid})-[:HAS_EVENT]->(t:TrackingEvent)-[:AT]->(b:Branch)
+        f"""
+        MATCH (s:Shipment {{shipmentId: $sid}})
+        WHERE {ACCESS}
+        MATCH (s)-[:HAS_EVENT]->(t:TrackingEvent)-[:AT]->(b:Branch)
         OPTIONAL MATCH (t)-[:NEXT]->(n:TrackingEvent)
         RETURN s.shipmentId AS sid, s.shipmentType AS stype,
                t.eventId AS eventId, t.seq AS seq, t.status AS status, t.eventTime AS time,
                b.branchId AS branchId, b.name AS branch, b.kind AS kind, n.eventId AS nextId
         ORDER BY t.seq
         """,
-        {"sid": shipment_id},
+        {"sid": shipment_id, **access_params(user)},
     )
+    if not rows:
+        require_shipment_access(user, shipment_id)   # 404 / 403
     nodes, edges, seen = [], [], set()
 
     def add(node):

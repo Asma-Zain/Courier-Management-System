@@ -46,9 +46,18 @@ const Layout = {
       ui.el("div", { class: "menu-panel" },
         ui.el("div", { class: "who" }, ui.el("strong", {}, `${user.name}${user.lastName ? " " + user.lastName : ""}`), ui.el("br"),
           ui.el("span", { class: "muted small" }, user.role === "STAFF" ? "Staff" : "Customer")),
-        ui.el("a", { href: "/account" }, "Account"),
-        ui.el("button", { type: "button", onclick: async () => { await api.post("/api/auth/logout"); location.href = "/login"; } }, "Log out")));
-    menu.addEventListener("keydown", (e) => { if (e.key === "Escape" && menu.open) { menu.open = false; ui.$("summary", menu).focus(); } });
+        ui.el("a", { href: "/account", role: "menuitem" }, ui.icon("user"), "Account"),
+        ui.el("button", { type: "button", role: "menuitem", onclick: async () => { await api.post("/api/auth/logout"); location.href = "/login"; } }, ui.icon("arrow"), "Log out")));
+    ui.$(".menu-panel", menu).setAttribute("role", "menu");
+    menu.addEventListener("toggle", () => { if (menu.open) ui.$("[role=menuitem]", menu).focus(); });
+    menu.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && menu.open) { menu.open = false; ui.$("summary", menu).focus(); return; }
+      const items = ui.$$("[role=menuitem]", menu), i = items.indexOf(document.activeElement);
+      if (menu.open && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+        e.preventDefault();
+        items[(i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length].focus();
+      }
+    });
     document.addEventListener("click", (e) => { if (menu.open && !menu.contains(e.target)) menu.open = false; });
 
     document.body.prepend(
@@ -56,6 +65,10 @@ const Layout = {
       ui.el("header", { class: "site-header" }, ui.el("div", { class: "inner" },
         ui.el("a", { class: "brand", href: "/" }, ui.el("img", { src: "/img/logo.svg", alt: "" }), BRAND),
         nav, search, cta, menu)));
+    ui.$$(".crumb").forEach(c => { if (!ui.$(".ico", c)) c.prepend(ui.icon("back")); });
+    let flash = null;
+    try { flash = sessionStorage.getItem("flash"); sessionStorage.removeItem("flash"); } catch (e) { /* storage blocked */ }
+    if (flash) ui.toast(flash);
     return user;
   },
 };

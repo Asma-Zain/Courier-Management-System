@@ -6,8 +6,8 @@
   const msg = ui.$("#msg");
   let ship = null, graphNet = null, tabApi = null;
 
-  ui.$("#back").prepend(ui.icon("back"));
-  ui.$("#back").lastChild.textContent = staff ? " Back to shipments" : " Back to my parcels";
+  ui.$("#back-text").textContent = staff ? "Back to shipments" : "Back to my parcels";
+  if (!staff) ui.$(".detail-layout").classList.add("no-aside");
   ui.$("#copy-link").append(ui.icon("copy"));
   ui.$("#share").append(ui.icon("share"));
   ui.$("#print-label").append(ui.icon("print"), " Print label");
@@ -40,10 +40,12 @@
     ];
     if (staff) { rows.splice(2, 0, ["Sender phone", s.sender.phone], ["Receiver phone", s.receiver.phone]); }
     for (const [k, v] of rows) dl.append(ui.el("dt", {}, k), ui.el("dd", {}, v));
-    ui.table(ui.$("#packages"), [
-      { key: "description", label: "Description" }, { key: "packageType", label: "Type" },
-      { key: "dimensions", label: "Dimensions" }, { key: "weightKg", label: "Weight", num: true, render: r => `${r.weightKg} kg` },
-    ], s.packages, { empty: "No packages." });
+    // a list (not a table) so narrow cards never scroll sideways
+    const pk = ui.clear(ui.$("#packages"));
+    if (!s.packages.length) pk.append(ui.el("p", { class: "empty" }, "No packages."));
+    else pk.append(ui.el("ul", { class: "list package-list" }, s.packages.map(p => ui.el("li", {},
+      ui.el("div", { class: "main" }, p.description, ui.el("span", { class: "sub" }, `${p.packageType} · ${p.dimensions}`)),
+      ui.el("strong", {}, `${p.weightKg} kg`)))));
 
     ui.$("#skeleton").hidden = true;
     ui.$("#result").hidden = false;
@@ -85,14 +87,15 @@
     [nextInfo, branches] = await Promise.all([api.get(`/api/shipments/${id}/next-statuses`), branches.length ? branches : api.get("/api/branches")]);
     const none = !nextInfo.allowed.length;
     ui.$("#event-form").classList.toggle("muted", none);
-    ui.$("#ev-submit").disabled = none;
+    ui.$("#ev-submit").disabled = true;
     evStatus.disabled = evBranch.disabled = ui.$("#ev-note").disabled = none;
     if (none) {
       ui.fill(evStatus, [{ s: "", l: `Final (${ui.statusLabel(nextInfo.current)})` }], "s", "l");
       ui.fill(evBranch, [], "n", "n");
       ui.$("#ev-hint").textContent = "This shipment is finished, so no more events can be added.";
     } else {
-      ui.fill(evStatus, nextInfo.allowed.map(s => ({ s, l: ui.statusLabel(s) })), "s", "l");
+      ui.fill(evStatus, nextInfo.allowed.map(s => ({ s, l: ui.statusLabel(s) })), "s", "l", "Choose next status");
+      evStatus.value = "";
       fillBranches();
     }
     const payForm = ui.$("#pay-form"), done = ui.$("#pay-done");
@@ -102,7 +105,7 @@
     done.textContent = ship.payment ? "A payment is already recorded for this shipment." : "Cancelled shipments take no payment.";
     ui.$("#pay-amount").value = ship.outstanding;
   }
-  evStatus.addEventListener("change", () => nextInfo && fillBranches());
+  evStatus.addEventListener("change", () => { if (nextInfo) fillBranches(); ui.$("#ev-submit").disabled = !evStatus.value; });
   for (const m of ["UPI", "CARD", "NETBANKING", "CASH"]) ui.$("#pay-mode").append(ui.el("option", { value: m }, m));
   for (const [v, l] of [["PAID", "Paid"], ["PENDING", "Pending"]]) ui.$("#pay-status").append(ui.el("option", { value: v }, l));
 
@@ -110,6 +113,11 @@
     e.preventDefault();
     const box = ui.$("#ev-error");
     ui.formError(box, "");
+    if (!ui.check([[evStatus, (v) => v ? null : "Choose the next status."]])) return;
+    if (["DELIVERED", "CANCELLED"].includes(evStatus.value) && !(await ui.confirm({
+      title: `Mark shipment #${id} as ${ui.statusLabel(evStatus.value).toLowerCase()}?`,
+      message: "This is final: no more events can be added afterwards.",
+      confirmLabel: `Mark ${ui.statusLabel(evStatus.value).toLowerCase()}`, danger: evStatus.value === "CANCELLED" }))) return;
     try {
       const r = await api.post(`/api/shipments/${id}/events`, { status: evStatus.value, branch: evBranch.value, note: ui.$("#ev-note").value.trim() || null });
       ui.$("#ev-note").value = "";
@@ -136,6 +144,13 @@
     else ui.copy(location.href);
   });
 
+  function qrBlock(url) {
+    if (typeof qrcode === "undefined") return "";
+    const qr = qrcode(0, "M");
+    qr.addData(url); qr.make();
+    return ui.el("div", {}, ui.el("img", { class: "print-qr", src: qr.createDataURL(4, 0), alt: "QR code linking to the tracking page" }),
+      ui.el("p", { class: "small" }, `Scan to track: ${url}`));
+  }
   ui.$("#print-label").addEventListener("click", () => {
     ui.$$(".print-only").forEach(n => n.remove());
     const label = ui.el("div", { class: "print-only" },
@@ -143,7 +158,8 @@
       ui.el("p", {}, ui.el("strong", {}, "To: "), `${ship.receiver.firstName} ${ship.receiver.lastName}, ${ship.receiver.city} · ${ship.receiver.phone}`),
       ui.el("p", {}, ui.el("strong", {}, "From: "), `${ship.sender.firstName} ${ship.sender.lastName}, ${ship.sender.city}`),
       ui.el("p", {}, `${ship.shipmentType} · ${ship.weightKg} kg · ${ship.packages.length} package(s)`),
-      ui.el("p", {}, `Booked ${ui.fmtDay(ship.bookingDate)} at ${ship.bookedAt}`));
+      ui.el("p", {}, `Booked ${ui.fmtDay(ship.bookingDate)} at ${ship.bookedAt}`),
+      qrBlock(location.href));
     document.body.append(label);
     document.body.classList.add("printing-label");
     window.print();

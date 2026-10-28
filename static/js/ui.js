@@ -167,7 +167,8 @@ const ui = {
   dialog({ title, body, actions = [], onClose }) {
     const dlg = ui.el("dialog", { "aria-labelledby": "dlg-title" }, ui.el("h2", { id: "dlg-title" }, title), body,
       actions.length ? ui.el("div", { class: "dialog-actions" }, actions.map(a =>
-        ui.el("button", { type: a.submit ? "submit" : "button", class: a.kind || "", form: a.form, onclick: a.onClick || (() => dlg.close()) }, a.label))) : "");
+        ui.el("button", { type: a.submit ? "submit" : "button", class: a.kind || "", form: a.form,
+          onclick: a.submit ? null : (a.onClick || (() => dlg.close())) }, a.label))) : "");
     dlg.addEventListener("close", () => { dlg.remove(); if (onClose) onClose(); });
     dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
     document.body.append(dlg);
@@ -219,6 +220,7 @@ const ui = {
   /* ---------------- lists, tables, states ---------------- */
   skeleton(container, n = 3) {
     ui.clear(container);
+    container.append(ui.el("span", { class: "sr-only", role: "status" }, "Loading…"));
     for (let i = 0; i < n; i++) container.append(ui.el("div", { class: "skeleton", "aria-hidden": "true" }));
     container.setAttribute("aria-busy", "true");
   },
@@ -236,7 +238,7 @@ const ui = {
       retry ? ui.el("button", { type: "button", onclick: retry }, "Try again") : ""));
   },
   /* columns: [{key, label, num?, render?(row)}]; rows open `href(row)` when clicked. Cards on mobile. */
-  table(container, columns, rows, { empty = "Nothing to show.", href } = {}) {
+  table(container, columns, rows, { empty = "Nothing to show.", href, wide = false } = {}) {
     container.removeAttribute("aria-busy");
     ui.clear(container);
     if (!rows || !rows.length) { container.append(ui.el("p", { class: "empty" }, empty)); return; }
@@ -247,7 +249,7 @@ const ui = {
       if (href) tr.addEventListener("click", (e) => { if (!e.target.closest("a,button")) location.href = href(r); });
       return tr;
     });
-    container.append(ui.el("div", { class: "table-wrap" }, ui.el("table", { class: "data" }, ui.el("thead", {}, head), ui.el("tbody", {}, body))));
+    container.append(ui.el("div", { class: "table-wrap" }, ui.el("table", { class: wide ? "data wide" : "data" }, ui.el("thead", {}, head), ui.el("tbody", {}, body))));
   },
   fill(select, items, valueKey, labelKey, placeholder) {
     ui.clear(select);
@@ -276,6 +278,7 @@ const ui = {
       case "hours": return `${ui.fmtNum(value)} h`;
       case "date": return ui.fmtDay(value);
       case "kind": return value === "HUB" ? "Hub" : "Branch";
+      case "title": return String(value).charAt(0).toUpperCase() + String(value).slice(1).toLowerCase();
       case "shipment": return ui.el("a", { href: `/shipments/${value}` }, `#${value}`);
       default: return String(value);
     }
@@ -303,6 +306,8 @@ const ui = {
     container.append(svg);
   },
 
+  /* Message that survives a page change (for example "Customer deleted") */
+  flash(text) { try { sessionStorage.setItem("flash", text); } catch (e) { /* storage blocked */ } },
   async copy(text) {
     try { await navigator.clipboard.writeText(text); ui.toast("Copied"); }
     catch (e) { ui.toast("Copy is not available in this browser", "error"); }
@@ -401,12 +406,20 @@ const ui = {
   },
 
   /* ---------------- graph (vis-network, vendored) ---------------- */
+  /* Fixed positions (roughly geographic) keep the 6-place network readable: no overlapping edge labels. */
+  NETWORK_POS: { "Mumbai Hub": [-340, -60], "Hyderabad Hub": [-20, -140], "Bengaluru City Branch": [-120, 90],
+                 "Coimbatore Hub": [-260, 230], "Chennai Hub": [180, 110], "Chennai Central Branch": [300, 10] },
+  placeNetwork(nodes) {
+    const known = nodes.every(n => ui.NETWORK_POS[n.label.replace(/ \(\d+\)$/, "")]);
+    return { known, nodes: nodes.map(n => { const pos = ui.NETWORK_POS[n.label.replace(/ \(\d+\)$/, "")];
+      return known ? { ...n, x: pos[0], y: pos[1], fixed: true } : n; }) };
+  },
   graph(container, data, options = {}) {
     if (typeof vis === "undefined") { container.textContent = "Graph library could not be loaded."; return null; }
     const text = ui.cssVar("--c-text"), border = ui.cssVar("--c-border"), bg = ui.cssVar("--c-bg");
     const group = (c) => ({ color: { background: c, border: c, highlight: { background: c, border: ui.cssVar("--c-coral") } } });
     const net = new vis.Network(container, { nodes: new vis.DataSet(data.nodes), edges: new vis.DataSet(data.edges) }, {
-      nodes: { shape: "dot", size: 16, font: { color: text, size: 14, strokeWidth: 4, strokeColor: bg } },
+      nodes: { shape: "dot", size: 16, margin: 8, font: { color: text, size: 16, strokeWidth: 4, strokeColor: bg } },
       edges: { color: { color: border, highlight: ui.cssVar("--c-coral"), hover: ui.cssVar("--c-peach") }, arrows: "to", width: 2,
                font: { color: ui.cssVar("--c-text-2"), size: 12, strokeWidth: 5, strokeColor: bg, align: "middle" },
                smooth: { type: "continuous" }, selectionWidth: 3 },
@@ -421,10 +434,13 @@ const ui = {
       wrap.append(ui.el("div", { class: "graph-tools" },
         tool("zoomIn", "Zoom in", () => net.moveTo({ scale: net.getScale() * 1.25, animation: true })),
         tool("zoomOut", "Zoom out", () => net.moveTo({ scale: net.getScale() / 1.25, animation: true })),
-        tool("fit", "Fit to screen", () => net.fit({ animation: true })),
-        tool("reset", "Reset view", () => { net.fit(); net.unselectAll(); })));
+        tool("fit", "Fit to screen", () => net.fitWithMargin()),
+        tool("reset", "Reset view", () => { net.unselectAll(); net.fitWithMargin(); })));
     }
-    net.once("stabilizationIterationsDone", () => net.fit());
+    const fitWithMargin = () => { net.fit({ animation: false }); net.moveTo({ scale: net.getScale() * 0.82, animation: false }); };
+    net.once("stabilizationIterationsDone", fitWithMargin);
+    if (options.physics === false) setTimeout(fitWithMargin, 50);
+    net.fitWithMargin = fitWithMargin;
     return net;
   },
 };

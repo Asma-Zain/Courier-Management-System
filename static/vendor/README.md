@@ -9,3 +9,5 @@
 
 Icons and the mascot are inline SVG / local SVG files drawn for this project.
 To upgrade: `npm i vis-network@X @fontsource/...` in a scratch folder and copy the files here.
+
+| QR code generator (`qrcode.js`, used by the shipment label) | 2.0.4 | MIT | npm `qrcode-generator` |

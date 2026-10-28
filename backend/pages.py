@@ -65,8 +65,11 @@ def shipment_detail(request: Request, shipment_id: int):
     gate = _gate(request, "shipment.html")
     if not isinstance(gate, FileResponse):
         return gate
+    sess = auth.session(request)
+    if sess["role"] == "STAFF":
+        return gate
     try:
-        require_shipment_access(auth.session(request), shipment_id)
+        require_shipment_access(sess, shipment_id)
     except AppError as exc:
         return error_page(exc.status_code, exc.message)
     return gate

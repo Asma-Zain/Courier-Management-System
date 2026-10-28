@@ -67,11 +67,12 @@ def list_shipments(user: dict, q: str | None = None, status: str | None = None, 
 
 
 def get_shipment(user: dict, shipment_id: int) -> dict:
-    """G2, extended with branch, packages, payment and current status."""
-    require_shipment_access(user, shipment_id)
+    """G2, extended with branch, packages, payment and current status. The access check is part of the
+    same query; only when it returns nothing do we ask why (404 or 403)."""
     rows = db.read(
         f"""
         MATCH (snd:Customer)-[:SENT]->(s:Shipment {{shipmentId: $sid}})-[:ADDRESSED_TO]->(rcv:Customer)
+        WHERE {ACCESS}
         OPTIONAL MATCH (s)-[:BOOKED_AT]->(bk:Branch)
         {CURRENT_STATUS}
         CALL {{
@@ -94,8 +95,11 @@ def get_shipment(user: dict, shipment_id: int) -> dict:
                  {{paymentId: pay.paymentId, amount: pay.amount, mode: pay.mode,
                   status: pay.status, paymentDate: toString(pay.paymentDate)}} END AS payment
         """,
-        {"sid": shipment_id},
+        {"sid": shipment_id, **access_params(user)},
     )
+    if not rows:
+        require_shipment_access(user, shipment_id)   # raises 404 or 403
+        raise NotFound(f"Shipment {shipment_id} not found.")
     ship = rows[0]
     paid = ship["payment"]["amount"] if ship["payment"] and ship["payment"]["status"] == "PAID" else 0
     ship["paidAmount"] = paid

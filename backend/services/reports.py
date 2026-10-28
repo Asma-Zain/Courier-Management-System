@@ -40,14 +40,14 @@ REPORTS = [
         ("outstanding", "Outstanding", "money"), ("paymentStatus", "Payment", "text")], ""),
     _r("G13", "packages-per-shipment", "Shipments", "Packages per shipment",
        "Package count, combined weight and the heaviest package of each shipment.",
-       [("shipment", "Shipment", "shipment"), ("packages", "Packages", "int"), ("packagesKg", "Packages weight", "kg"),
-        ("shipmentKg", "Shipment weight", "kg"), ("heaviestPackageKg", "Heaviest package", "kg")], ""),
+       [("shipment", "Shipment", "shipment"), ("packages", "Packages", "int"),
+        ("packagesKg", "Total weight", "kg"), ("heaviestPackageKg", "Heaviest package", "kg")], ""),
     _r("G14", "heavier-than-average", "Shipments", "Heavier than average",
        "Shipments above the average shipment weight.",
        [("shipment", "Shipment", "shipment"), ("kg", "Weight", "kg"), ("averageKg", "Average weight", "kg")], ""),
     _r("G16", "tracking-duration", "Shipments", "Hours tracked",
        "Time between the first and the latest tracking event of each shipment.",
-       [("shipment", "Shipment", "shipment"), ("type", "Type", "text"), ("booked", "Booked", "date"),
+       [("shipment", "Shipment", "shipment"), ("type", "Type", "title"), ("booked", "Booked", "date"),
         ("hoursTracked", "Hours tracked", "hours")], ""),
 ]
 
@@ -58,7 +58,8 @@ ORDER BY events DESC, location""",
     "delayed": """MATCH (snd:Customer)-[:SENT]->(s:Shipment)-[:HAS_EVENT]->(t:TrackingEvent {status: 'DELAYED'}),
       (s)-[:ADDRESSED_TO]->(rcv:Customer)
 WHERE NOT (t)-[:NEXT]->()
-RETURN s.shipmentId AS shipment, snd.firstName AS sender, rcv.firstName AS receiver, t.location AS stuckAt
+RETURN s.shipmentId AS shipment, snd.firstName + ' ' + snd.lastName AS sender,
+       rcv.firstName + ' ' + rcv.lastName AS receiver, t.location AS stuckAt
 ORDER BY shipment""",
     "branch-performance": """MATCH (s:Shipment)-[:BOOKED_AT]->(b:Branch)
 RETURN b.name AS branch, count(s) AS shipments, sum(s.totalAmount) AS value
@@ -85,16 +86,17 @@ ORDER BY kg DESC""",
     "customer-activity": """MATCH (c:Customer)
 CALL { WITH c MATCH (c)-[:SENT]->(s:Shipment) RETURN count(s) AS sent }
 CALL { WITH c MATCH (s2:Shipment)-[:ADDRESSED_TO]->(c) RETURN count(s2) AS received }
-RETURN c.firstName AS customer, sent, received
+RETURN c.firstName + ' ' + c.lastName AS customer, sent, received
 ORDER BY customer""",
     "customer-network": """MATCH (a:Customer {customerId: $customerId})-[:SENT]->(:Shipment)-[:ADDRESSED_TO]->(b:Customer)
       -[:SENT]->(:Shipment)-[:ADDRESSED_TO]->(c:Customer)
 WHERE c <> a
-RETURN DISTINCT a.firstName AS start, b.firstName AS via, c.firstName AS reaches
+RETURN DISTINCT a.firstName + ' ' + a.lastName AS start, b.firstName + ' ' + b.lastName AS via,
+       c.firstName + ' ' + c.lastName AS reaches
 ORDER BY via, reaches""",
     "tracking-duration": """MATCH (s:Shipment)-[:HAS_EVENT]->(t:TrackingEvent)
 WITH s, min(t.eventTime) AS first, max(t.eventTime) AS latest
-RETURN s.shipmentId AS shipment, toUpper(s.shipmentType) AS type,
+RETURN s.shipmentId AS shipment, s.shipmentType AS type,
        toString(s.bookingDate) AS booked,
        round(duration.inSeconds(first, latest).seconds / 3600.0, 1) AS hoursTracked
 ORDER BY shipment""",

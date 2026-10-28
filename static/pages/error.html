@@ -9,13 +9,17 @@
   <link rel="stylesheet" href="/css/theme.css">
 </head>
 <body>
-<header class="site-header"><div class="inner"><a class="brand" href="/"><img src="/img/logo.svg" alt="">Parcelly</a></div></header>
+<header class="site-header minimal"><div class="inner"><a class="brand" href="/"><img src="/img/logo.svg" alt="">Parcelly</a></div></header>
 <main id="main" class="error-page">
   <img src="/img/box.svg" alt="">
   <p class="code">{{code}}</p>
   <h1>{{title}}</h1>
   <p class="muted">{{message}}</p>
-  <p><a class="button" href="/">Go to home</a></p>
+  <p class="row"><button type="button" class="secondary" id="go-back">Go back</button><a class="button" href="/">Go to home</a></p>
 </main>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/js/pages/error.js"></script>
 </body>
 </html>

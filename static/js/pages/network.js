@@ -12,9 +12,10 @@
 
   // ---- one shared map
   const sizes = Object.fromEntries(network.nodes.map(n => [n.id, n.group === "HUB" ? 22 : 16]));
-  const net = ui.graph(ui.$("#graph"), { nodes: network.nodes.map(n => ({ ...n, size: sizes[n.id] })),
+  const placed = ui.placeNetwork(network.nodes.map(n => ({ ...n, size: sizes[n.id] })));
+  const net = ui.graph(ui.$("#graph"), { nodes: placed.nodes,
     edges: network.edges.map(e => ({ ...e, arrows: "", font: { size: 12, strokeWidth: 5, strokeColor: ui.cssVar("--c-bg"), color: ui.cssVar("--c-text-2"), align: "middle" } })) },
-    { physics: { solver: "forceAtlas2Based", forceAtlas2Based: { springLength: 230, gravitationalConstant: -90, avoidOverlap: 1 } } });
+    { physics: placed.known ? false : { solver: "forceAtlas2Based", forceAtlas2Based: { springLength: 230, gravitationalConstant: -90, avoidOverlap: 1 } } });
   const idOf = (name) => (network.nodes.find(n => n.label === name) || {}).id;
 
   function highlight(route) {
@@ -74,12 +75,12 @@
     ui.skeleton(out, 2);
     try {
       const rows = await api.get(`/api/hubs/${encodeURIComponent(hub.value)}/impact`);
-      ui.table(out, [
-        { key: "shipment", label: "Shipment", render: r => ui.el("a", { href: `/shipments/${r.shipment}` }, `#${r.shipment}`) },
-        { key: "status", label: "Status", render: r => ui.badge(r.status) },
-        { key: "receiver", label: "Receiver waiting" },
-        { key: "phone", label: "Phone", render: r => ui.el("a", { href: `tel:${r.phone}` }, r.phone) },
-      ], rows, { empty: `No shipments are waiting at ${hub.value}.` });
+      ui.clear(out).removeAttribute("aria-busy");
+      if (!rows.length) out.append(ui.el("p", { class: "empty" }, `No shipments are waiting at ${hub.value}.`));
+      else out.append(ui.el("ul", { class: "list impact-list" }, rows.map(r => ui.el("li", {},
+        ui.el("div", { class: "main" }, ui.el("a", { href: `/shipments/${r.shipment}` }, `#${r.shipment}`), ` · ${r.receiver}`,
+          ui.el("span", { class: "sub" }, "Call ", ui.el("a", { href: `tel:${r.phone}` }, r.phone))),
+        ui.badge(r.status)))));
     } catch (err) { ui.errorState(out, err.message, loadImpact); }
   }
   hub.addEventListener("change", loadImpact);

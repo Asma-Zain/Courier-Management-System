@@ -19,7 +19,7 @@
       const box = ui.$("#shipments");
       ui.skeleton(box, 2);
       const r = await api.get("/api/shipments", { customerId: id, pageSize: 100 });
-      ui.table(box, ui.shipmentColumns(), r.items, { empty: "This customer has no shipments.", href: row => `/shipments/${row.shipmentId}` });
+      ui.table(box, ui.shipmentColumns(), r.items, { empty: "This customer has no shipments.", href: row => `/shipments/${row.shipmentId}`, wide: true });
     } catch (err) { ui.message(msg, err.status === 404 ? "This customer does not exist." : err.message); }
   }
 
@@ -29,7 +29,7 @@
       message: "This permanently removes the customer. It cannot be undone. Customers who have sent or received shipments cannot be deleted.",
       confirmLabel: "Delete customer", danger: true });
     if (!ok) return;
-    try { await api.del(`/api/customers/${id}`); location.href = "/customers"; }
+    try { await api.del(`/api/customers/${id}`); ui.flash(`${customer.firstName} ${customer.lastName} was deleted.`); location.href = "/customers"; }
     catch (err) { ui.message(msg, err.message); msg.scrollIntoView({ block: "center" }); msg.setAttribute("tabindex", "-1"); msg.focus(); }
   });
   load();

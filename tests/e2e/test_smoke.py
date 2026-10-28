@@ -1,63 +1,12 @@
 """Browser smoke test (Playwright driving the installed Google Chrome). Needs Aura credentials.
 Run: make e2e. Uses customers 9001/9002 and removes everything it created."""
 import re
-import subprocess
-import sys
-import time
-import urllib.request
 
 import pytest
 
-pw = pytest.importorskip("playwright.sync_api")
-from backend import config  # noqa: E402
-from tests.conftest import BASELINE, cleanup, counts  # noqa: E402
+from tests.e2e.conftest import BASE, login  # noqa: E402
 
 pytestmark = pytest.mark.e2e
-PORT = 8765
-BASE = f"http://127.0.0.1:{PORT}"
-
-
-@pytest.fixture(scope="module")
-def server():
-    if not (config.NEO4J_URI and config.NEO4J_PASSWORD and config.APP_SECRET):
-        pytest.skip("Neo4j credentials not configured")
-    proc = subprocess.Popen([sys.executable, "-m", "uvicorn", "backend.main:app", "--port", str(PORT)],
-                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    for _ in range(40):
-        try:
-            if urllib.request.urlopen(f"{BASE}/healthz", timeout=1).status == 200:
-                break
-        except Exception:
-            time.sleep(0.5)
-    else:
-        proc.terminate()
-        pytest.fail("server did not start")
-    cleanup()
-    yield
-    proc.terminate()
-    cleanup()
-    assert counts() == BASELINE
-
-
-@pytest.fixture(scope="module")
-def browser():
-    with pw.sync_playwright() as p:
-        try:
-            b = p.chromium.launch(channel="chrome")
-        except Exception:
-            pytest.skip("Google Chrome is not available for Playwright")
-        yield b
-        b.close()
-
-
-def login(browser, email):
-    ctx = browser.new_context(viewport={"width": 1280, "height": 900})
-    page = ctx.new_page()
-    page.goto(f"{BASE}/login")
-    page.fill("#email", email)
-    page.click("button[type=submit]")
-    page.wait_for_url(f"{BASE}/")
-    return ctx, page
 
 
 def test_staff_flow_and_customer_scope(server, browser):
