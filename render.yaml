@@ -1,0 +1,21 @@
+# Render Blueprint: New > Blueprint > pick this repo. Secrets are entered in the Render dashboard, never here.
+services:
+  - type: web
+    name: parcelly
+    runtime: docker
+    plan: free
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_SECRET            # Render generates a long random value for you
+        generateValue: true
+      - key: NEO4J_URI             # you paste these four in the dashboard
+        sync: false
+      - key: NEO4J_USERNAME
+        sync: false
+      - key: NEO4J_PASSWORD
+        sync: false
+      - key: NEO4J_DATABASE
+        sync: false

@@ -120,6 +120,15 @@ The container only needs outbound access to Aura over `neo4j+s://`. Compose forc
 
 **Free Aura instances pause when idle: resume yours in the Aura console before a demo.** The first request after a pause can fail with 503 until it is running.
 
+## Deploy on Render (free tier)
+
+1. Push this repo to GitHub (done). Sign in at https://render.com with GitHub.
+2. **New > Blueprint**, pick this repository. Render reads `render.yaml` (Docker, free plan, health check `/healthz`).
+3. When asked, enter the four secrets: `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`, `NEO4J_DATABASE` (the same values as in `app/.env`). `APP_SECRET` is generated for you and `APP_ENV` is already `production`.
+4. Deploy. When it is live, open `https://<your-service>.onrender.com` and check `/healthz` and `/readyz`.
+
+The container listens on Render's `PORT` automatically. Render's free web service sleeps after about 15 minutes idle (first load takes up to a minute) and the free Aura database pauses too: open both a few minutes before a demo. Never put the secrets in git; they live only in Render's dashboard.
+
 ## Known limitations
 
 * Login is **email only, no password** (demo; out of scope for this project).
