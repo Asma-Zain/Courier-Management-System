@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Routes · Courier Tracking</title>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+<main>
+  <h1>Route finder</h1>
+  <div id="msg" hidden></div>
+  <form id="route-form" class="card row">
+    <label>From <select id="from"></select></label>
+    <label>To <select id="to"></select></label>
+    <button type="submit">Find routes</button>
+  </form>
+  <section id="result" hidden>
+    <div class="grid">
+      <div class="card"><h2>Fewest hops</h2><p id="hops"></p></div>
+      <div class="card"><h2>Fewest kilometres (top 3)</h2><div id="kms"></div></div>
+    </div>
+  </section>
+  <div class="card"><h2>Hub network</h2><div id="graph" class="graph"></div></div>
+</main>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+<script src="/js/pages/route.js"></script>
+</body>
+</html>

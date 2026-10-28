@@ -19,6 +19,18 @@ def get_customer(customer_id: int) -> dict:
     return rows[0]
 
 
+def lookup_by_email(email: str) -> dict:
+    """Minimal public-to-logged-in view (id and name only) so a sender can pick a receiver."""
+    rows = db.read(
+        "MATCH (c:Customer {email: $email}) "
+        "RETURN c.customerId AS customerId, c.firstName + ' ' + c.lastName AS name, c.city AS city",
+        {"email": email.strip().lower()},
+    )
+    if not rows:
+        raise NotFound("No customer with that email.")
+    return rows[0]
+
+
 def create_customer(data: dict) -> dict:
     """C1. Id is max+1 inside the write transaction unless the caller supplies one.
     The uniqueness constraints turn duplicates into ConstraintError (C7 demo)."""

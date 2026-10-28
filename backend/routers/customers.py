@@ -25,6 +25,12 @@ def create_customer(body: CustomerCreate, user: dict = Depends(auth.staff_only))
     return svc.create_customer(body.model_dump())
 
 
+@router.get("/customers/lookup", summary="Find a customer id by email (any logged-in user)")
+def lookup(email: str, user: dict = Depends(auth.current_user)):
+    """Returns only id, name and city. Used by the booking form to pick a receiver."""
+    return svc.lookup_by_email(email)
+
+
 @router.get("/customers/{customer_id}", summary="Get a customer (staff, or the customer themself)")
 def get_customer(customer_id: int, user: dict = Depends(auth.current_user)):
     _own_or_staff(user, customer_id)

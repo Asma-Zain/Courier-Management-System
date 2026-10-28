@@ -205,3 +205,9 @@ def test_customer_books_as_self(staff, arun):
 def test_zz_baseline_restored():
     cleanup()
     assert counts() == BASELINE
+
+
+def test_customer_lookup(arun):
+    r = arun.get("/api/customers/lookup", params={"email": "Priya@example.com"})
+    assert r.status_code == 200 and r.json() == {"customerId": 2, "name": "Priya Sharma", "city": "Bengaluru"}
+    assert arun.get("/api/customers/lookup", params={"email": "x@y.com"}).status_code == 404

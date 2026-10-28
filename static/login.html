@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log in · Courier Tracking</title>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+<main class="login-box">
+  <h1>Courier Tracking</h1>
+  <div class="card">
+    <div id="msg" hidden></div>
+    <form id="login-form">
+      <label>Email
+        <input id="email" type="email" required autocomplete="username" placeholder="you@example.com">
+      </label>
+      <p class="row"><button type="submit">Log in</button></p>
+    </form>
+    <p class="muted small">Demo login: email only, no password. Staff emails belong to employees, everyone else to customers.</p>
+    <p class="small muted">Try one:</p>
+    <div class="chips" id="samples"></div>
+  </div>
+  <p class="small muted"><a href="/docs">API docs</a></p>
+</main>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/pages/login.js"></script>
+</body>
+</html>

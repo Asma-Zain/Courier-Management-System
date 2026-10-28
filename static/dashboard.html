@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard · Courier Tracking</title>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+<main>
+  <h1 id="title">Dashboard</h1>
+  <div id="msg" hidden></div>
+  <section id="staff-only" hidden>
+    <div class="card"><h2>Records in the database</h2><div id="counts" class="stats"></div></div>
+    <div class="grid">
+      <div class="card"><h2>Shipments by current status</h2><div id="statuses"></div></div>
+      <div class="card"><h2>Outstanding payments</h2><p id="outstanding-total" class="muted"></p><div id="outstanding"></div></div>
+    </div>
+    <div class="card"><h2>Status board</h2><div id="board"></div></div>
+  </section>
+  <section id="customer-only" hidden>
+    <div class="card"><h2>My profile</h2><dl class="facts" id="profile"></dl></div>
+  </section>
+  <div class="card"><h2 id="ship-title">Shipments</h2><div id="shipments"></div></div>
+</main>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/pages/dashboard.js"></script>
+</body>
+</html>

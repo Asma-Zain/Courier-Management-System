@@ -1,44 +1,74 @@
 # Courier Tracking System: Neo4j (DA3)
 
-Graph-database version of the Courier Tracking System (BACSE202).
+Graph-database version of the Courier Tracking System (BACSE202), with the original Cypher scripts, a command line app and a **web app (FastAPI + plain HTML/JS, dark theme)**.
 
-## What is in this folder
-| File | Purpose |
+## What is in this repo
+| Path | Purpose |
 | --- | --- |
-| 01_constraints.cypher | Uniqueness constraints and indexes |
-| 02_load_data.cypher | Branches, hubs, routes, employees, customers, shipments, packages, payments, tracking events |
-| 03_core_operations.cypher | Create, read, update, delete and an integrity-violation demo |
-| 04_graph_queries.cypher | 16 technology-specific queries (traversals, routes, subqueries, functions) |
-| 05_access_control_demo.cypher | Roles and permissions (Neo4j Desktop / Enterprise only) |
-| app/courier_app.py | Command-line application with STAFF / CUSTOMER roles |
-| app/load_data.py | Runs .cypher files from Python, one statement at a time |
+| 01_constraints.cypher ... 05_access_control_demo.cypher | Schema, data, CRUD, 16 graph queries, access-control design |
+| app/ | Original CLI (`courier_app.py`) and `load_data.py`. Still works as a fallback |
+| backend/ | FastAPI app: `routers/` (HTTP), `services/` (all Cypher), `schemas.py` (validation), `auth.py` |
+| static/ | Frontend: one HTML page per feature, `css/theme.css` (all colours/fonts/spacing as CSS variables), `js/api.js` + `js/pages/*.js` |
+| tests/ | pytest suite (runs against the real database, uses test ids, cleans up) |
+| docs/page_to_query_map.md | Every page/button to endpoint to Cypher |
 
-## Build and run (Windows 11, PowerShell)
-1. Create a free Neo4j Aura instance (neo4j.com/cloud) or install Neo4j Desktop. Note the connection URI, username and password.
-2. Install Python 3.10+ from python.org (tick "Add python.exe to PATH").
-3. In PowerShell:
+## Run the web app (macOS)
+```bash
+cd Courier-Management-System            # repo root
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r backend/requirements.txt
+cp app/.env.example app/.env            # then fill in your Aura details (first time only)
+uvicorn backend.main:app --reload
+```
+Open http://127.0.0.1:8000 (API docs at http://127.0.0.1:8000/docs).
 
-       cd neo4j_courier\app
-       python -m venv .venv
-       .venv\Scripts\Activate.ps1
-       pip install -r requirements.txt
-       copy .env.example .env
-       notepad .env
+The database must already be loaded (`python app/load_data.py 01_constraints.cypher 02_load_data.cypher`, see the CLI section). The web app never loads, wipes or reseeds data.
 
-   Fill in NEO4J_URI, NEO4J_USERNAME and NEO4J_PASSWORD. Never commit .env.
-4. Load the schema and data:
+### Environment variables (names only, set in `app/.env`)
+`NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`, `NEO4J_DATABASE`, `APP_SECRET` (signs the session cookie), `COOKIE_SECURE` (true behind HTTPS), `CORS_ORIGINS` (optional). Generate a secret with `python3 -c "import secrets;print(secrets.token_urlsafe(48))"`. `.env` is git-ignored; never commit it.
 
-       python load_data.py ..\01_constraints.cypher ..\02_load_data.cypher
+### Demo logins (email only, no password)
+| Role | Emails |
+| --- | --- |
+| STAFF | divya@courier.com, naveen@courier.com, karthik@courier.com |
+| CUSTOMER | arun@example.com, priya@example.com, rahul@example.com, meera@example.com |
 
-   The last line printed should show the node counts: 6 Branch, 4 Customer, 3 Employee, 5 Shipment, 7 Package, 5 Payment, 12 TrackingEvent.
-5. Run the app:
+## Tests
+```bash
+source .venv/bin/activate
+python -m pytest -q tests
+```
+Tests hit the real Aura database but only create customers 9001/9002 and what they send, delete everything afterwards, and assert the baseline counts (Branch 6, Customer 4, Employee 3, Package 7, Payment 5, Shipment 5, TrackingEvent 12) are restored.
 
-       python courier_app.py
+## Features
+Login with roles; dashboard; customers CRUD; book a shipment with several packages in one transaction; tracking timeline + graph picture; add tracking events; current status board; fewest-hops and fewest-km routes; hub impact; reports G7-G16; payments. Customers only see shipments they sent or received (enforced on the server with `EXISTS {}`; the menu also hides staff pages).
 
-   Try `karthik@courier.com` (STAFF) and `arun@example.com` (CUSTOMER).
-6. For the demo queries, open Neo4j Browser (or the Aura Query tool) and run 03 and 04 one statement at a time.
+## Design notes
+* Neo4j Aura Free has no NOT NULL / CHECK constraints, so required fields, positive weights/amounts and the status / type / mode whitelists are enforced in Pydantic (`backend/schemas.py`). Uniqueness comes from the database constraints; a `ConstraintError` becomes HTTP 409.
+* New ids are `max(id)+1` computed inside the same write transaction; a race is caught by the unique constraint (customers retry, others return 409).
+* Booking also writes the first `BOOKED` tracking event so the shipment shows in the status board. If staff book it, they are linked with `LOGGED`.
+* If no amount is given, a demo rate card is used (`RATE_CARD` in `backend/config.py`).
+* A DELIVERED or CANCELLED shipment accepts no more events (409).
+* The payments report counts only `PAID` payments as paid (identical to G12 on the sample data).
+* Restyling: edit only `static/css/theme.css`. Graph colours also come from its variables.
 
-## Notes
-* The login is email-only for demonstration. A real system needs passwords or SSO.
-* NOT NULL / CHECK style rules are enforced in the app because Neo4j property-existence constraints are Enterprise-only.
-* Route distances in 02_load_data.cypher are approximate demo values.
+## Known limitations
+* Login is **email only, no password** (demo). A real system needs passwords or SSO.
+* Aura Free: no custom roles (`05_access_control_demo.cypher` is a design, not run), no property-existence constraints, instance pauses when idle (first request after a pause can be slow or return 503).
+* The graph pictures load vis-network from a CDN (needs internet in the browser).
+* Customers can look up another customer's id and name by exact email (needed to pick a receiver).
+
+## Deploy (optional)
+`docker compose up --build -d` serves on port 8000; put your reverse proxy (e.g. an `sslip.io` hostname) in front and set `COOKIE_SECURE=true`. The container only needs outbound access to Aura over `neo4j+s://`.
+
+## Command line app (original)
+```bash
+cd app && python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+cp .env.example .env     # fill in
+python load_data.py ../01_constraints.cypher ../02_load_data.cypher   # first time only
+python courier_app.py
+```
+Try `karthik@courier.com` (STAFF) and `arun@example.com` (CUSTOMER).
+
+## Cypher scripts
+Run `03_core_operations.cypher` and `04_graph_queries.cypher` one statement at a time in the Aura query tool. Route distances are approximate demo values.

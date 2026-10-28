@@ -1,0 +1,9 @@
+# Needs only outbound access to Aura (neo4j+s://). Put your reverse proxy / sslip.io hostname in front of port 8000.
+# Secrets come from app/.env (never committed). Set COOKIE_SECURE=true there when served over HTTPS.
+services:
+  web:
+    build: .
+    env_file: app/.env
+    ports:
+      - "8000:8000"
+    restart: unless-stopped

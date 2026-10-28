@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hub impact · Courier Tracking</title>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+<main>
+  <h1>Hub impact</h1>
+  <p class="muted">Which receivers are waiting on shipments currently sitting at a hub or branch.</p>
+  <div id="msg" hidden></div>
+  <form id="hub-form" class="card row">
+    <label>Hub / branch <select id="hub"></select></label>
+    <button type="submit">Show impact</button>
+  </form>
+  <div class="card"><div id="result"></div></div>
+</main>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/pages/hub.js"></script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Track · Courier Tracking</title>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+<main>
+  <h1>Track a shipment</h1>
+  <div id="msg" hidden></div>
+  <form id="track-form" class="card row">
+    <label>Shipment id <input id="sid" type="number" min="1" required></label>
+    <button type="submit">Track</button>
+  </form>
+  <section id="result" hidden>
+    <div class="grid">
+      <div class="card"><h2>Shipment <span id="d-id"></span> <span id="d-status"></span></h2><dl class="facts" id="details"></dl></div>
+      <div class="card"><h2>Journey</h2><ol class="timeline" id="timeline"></ol></div>
+    </div>
+    <div class="card"><h2>Packages</h2><div id="packages"></div></div>
+    <div class="card"><h2>Journey graph</h2><div id="graph" class="graph"></div></div>
+    <div class="grid" id="staff-forms" hidden>
+      <form class="card" id="event-form">
+        <h2>Add tracking event</h2>
+        <div class="form-grid">
+          <label>Status <select id="ev-status" required></select></label>
+          <label>Branch / hub <select id="ev-branch" required></select></label>
+        </div>
+        <button type="submit">Add event</button>
+      </form>
+      <form class="card" id="pay-form">
+        <h2>Record payment</h2>
+        <div class="form-grid">
+          <label>Amount <input id="pay-amount" type="number" step="0.01" min="0.01" required></label>
+          <label>Mode <select id="pay-mode"></select></label>
+          <label>Status <select id="pay-status"></select></label>
+        </div>
+        <button type="submit">Record payment</button>
+      </form>
+    </div>
+  </section>
+</main>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+<script src="/js/pages/track.js"></script>
+</body>
+</html>

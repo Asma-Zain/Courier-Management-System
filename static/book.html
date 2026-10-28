@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Book shipment · Courier Tracking</title>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+<main>
+  <h1>Book a shipment</h1>
+  <div id="msg" hidden></div>
+  <form id="book-form">
+    <div class="card">
+      <h2>Parties</h2>
+      <div class="form-grid">
+        <label id="sender-wrap">Sender <select id="sender"></select></label>
+        <label>Receiver email <input id="receiver-email" type="email" required placeholder="priya@example.com"></label>
+        <label>Booking branch <select id="branch" required></select></label>
+        <label>Shipment type <select id="stype" required></select></label>
+      </div>
+      <p class="small muted" id="receiver-hint"></p>
+    </div>
+    <div class="card">
+      <h2>Packages</h2>
+      <div id="packages"></div>
+      <button type="button" class="secondary" id="add-pkg">Add another package</button>
+    </div>
+    <div class="card">
+      <label>Amount (optional, otherwise from the demo rate card)
+        <input id="amount" type="number" step="0.01" min="0.01">
+      </label>
+      <p><button type="submit">Book shipment</button></p>
+    </div>
+  </form>
+</main>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/pages/book.js"></script>
+</body>
+</html>
