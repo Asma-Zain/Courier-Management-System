@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parcels · Parcelly</title>
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+<main>
+  <div class="page-head">
+    <h1 id="title">My Parcels</h1>
+    <div class="row" id="head-actions"><a class="button" href="/track.html" id="head-action">Track a Parcel</a></div>
+  </div>
+  <div id="msg" hidden></div>
+  <div class="tabs" role="tablist" aria-label="Parcel filters" id="tabs"></div>
+  <div class="parcel-list" id="list" role="tabpanel" aria-live="polite"></div>
+</main>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/pages/parcels.js"></script>
+</body>
+</html>

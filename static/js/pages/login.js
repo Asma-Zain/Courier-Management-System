@@ -18,7 +18,7 @@
     e.preventDefault();
     try {
       await api.post("/api/auth/login", { email: emailInput.value });
-      location.href = "/dashboard.html";
+      location.href = "/home.html";
     } catch (err) {
       ui.message(msg, err.message);
     }

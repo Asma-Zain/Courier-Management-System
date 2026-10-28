@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 -5 425 380" role="img" aria-hidden="true"><ellipse cx="205" cy="338" rx="105" ry="13" fill="#000" opacity=".4"/>
+  <polygon points="80,110 200,165 200,285 80,230" fill="#FFB48A"/>
+  <polygon points="200,165 320,110 320,230 200,285" fill="#F08F5C"/>
+  <polygon points="200,60 320,110 200,165 80,110" fill="#FFD6B8"/>
+  <polygon points="127,80 153,90 273,143 247,132" fill="#F4A56F"/>
+  <polygon points="248,180 298,158 298,190 248,212" fill="#FFF1E4"/>
+  <path d="M258 188 L288 175 M258 197 L280 187" stroke="#E57F4B" stroke-width="3" stroke-linecap="round"/>
+  <g stroke="#E57F4B" stroke-width="11" stroke-linecap="round" fill="none">
+    <path d="M125 252 L116 298"/><path d="M170 273 L178 316"/>
+  </g>
+  <ellipse cx="112" cy="302" rx="15" ry="8" fill="#E57F4B"/><ellipse cx="182" cy="320" rx="15" ry="8" fill="#E57F4B"/>
+  <path d="M82 200 Q40 185 36 140" stroke="#E57F4B" stroke-width="11" stroke-linecap="round" fill="none"/><circle cx="36" cy="136" r="10" fill="#E57F4B"/>
+  <path d="M318 190 Q362 180 368 135" stroke="#E57F4B" stroke-width="11" stroke-linecap="round" fill="none"/><circle cx="368" cy="131" r="10" fill="#E57F4B"/>
+  <path d="M102 198 Q110 188 118 198" stroke="#2B1710" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M148 219 Q156 209 164 219" stroke="#2B1710" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M118 222 Q134 252 152 238 Z" fill="#2B1710"/>
+  <ellipse cx="96" cy="214" rx="9" ry="6" fill="#FF827D" opacity=".7"/><ellipse cx="172" cy="242" rx="9" ry="6" fill="#FF827D" opacity=".7"/><path d="M0 0 l12 -4 l4 10 l-12 4z" fill="#FFD17B" transform="translate(60 60)"/><path d="M0 0 l12 3 l-3 10 l-12 -3z" fill="#A8E6A0" transform="translate(330 50)"/><path d="M0 0 l10 -6 l6 9 l-10 6z" fill="#FF827D" transform="translate(120 25)"/><path d="M0 0 l12 -2 l2 10 l-12 2z" fill="#FFB19B" transform="translate(270 20)"/><path d="M0 0 l10 4 l-4 9 l-10 -4z" fill="#A8E6A0" transform="translate(30 150)"/><path d="M0 0 l12 -3 l3 10 l-12 3z" fill="#FFD17B" transform="translate(385 200)"/><path d="M0 0 l9 -5 l5 9 l-9 5z" fill="#FF827D" transform="translate(200 10)"/><path d="M210 14.3 C192 -1.0 206.4 -10 210 1.7000000000000002 C213.6 -10 228 -1.0 210 14.3Z" fill="#FF827D"/><g stroke="#FFB19B" stroke-width="4" stroke-linecap="round"><path d="M395 90 L410 80"/><path d="M20 90 L5 80"/></g>
+</svg>

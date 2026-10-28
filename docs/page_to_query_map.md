@@ -7,6 +7,12 @@ All Cypher is parameterised and lives in `backend/services/`. "Q" ids refer to `
 | Login | Log in | `POST /api/auth/login` | any | `MATCH (e:Employee {email:$email})` then `MATCH (c:Customer {email:$email})` (`services/auth.py`) | CLI login |
 | Header | Log out | `POST /api/auth/logout` | any | none (clears cookie) | |
 | All pages | (header) | `GET /api/auth/me` | any | `MATCH (e:Employee {employeeId:$id})` / `MATCH (c:Customer {customerId:$id})` | |
+| Home | Track (search) | `GET /api/shipments/{id}` via Track page | any | see Track rows | G2 |
+| Home | "Try: #1 #4" hints | `GET /api/shipments` | any | see list row below | |
+| Home | quick-action cards | none (links to Track, Send, Routes, My Parcels) | any | none | |
+| My Parcels | tabs Active / Delivered / Cancelled | `GET /api/shipments` | any (customers: own only) | list query below, filtered in the browser by current status | |
+| Live Tracking | page load | `GET /api/shipments/{id}` + `GET /api/shipments/{id}/track` | any (access checked) | same as Track (G2, C3); route drawn from the scan places | G2, C3 |
+| Delivered | page load | `GET /api/shipments/{id}` | any (access checked) | G2; page only shows when current status is DELIVERED | G2 |
 | Dashboard | page load (counts) | `GET /api/dashboard` | staff | `MATCH (n) RETURN labels(n)[0], count(*)`; statuses: `MATCH (s)-[:HAS_EVENT]->(t) WHERE NOT (t)-[:NEXT]->() RETURN t.status, count(s)`; outstanding: shipment total minus PAID `Payment` (`services/dashboard.py`) | G3, G12 |
 | Dashboard | status board | `GET /api/shipments/status` | staff | `MATCH (s)-[:HAS_EVENT]->(t)-[:AT]->(b) WHERE NOT (t)-[:NEXT]->()` (`services/shipments.py`) | G3 |
 | Dashboard | shipment list | `GET /api/shipments` | any (customers: own only) | `MATCH (snd)-[:SENT]->(s)-[:ADDRESSED_TO]->(rcv) WHERE $role='STAFF' OR EXISTS{...SENT...} OR EXISTS{...ADDRESSED_TO...}` + current-status `OPTIONAL MATCH` | CLI track |

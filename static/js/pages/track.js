@@ -5,6 +5,12 @@
   const staff = user.role === "STAFF";
   let currentId = null;
 
+  const { form, input } = ui.searchBar({ onSubmit: (id) => load(id) });
+  ui.$("#search-slot").append(form, ui.el("p", { class: "try-line", id: "try" }));
+  ui.tryLine(ui.$("#try"), (id) => `/track.html?id=${id}`);
+  ui.$("#copy-id").append(ui.icon("copy"));
+  ui.$("#share").append(ui.icon("share"));
+
   async function load(id) {
     ui.message(msg, "");
     ui.$("#result").hidden = true;
@@ -14,32 +20,36 @@
         api.get(`/api/shipments/${id}/track`),
         api.get(`/api/graph/shipment/${id}`),
       ]);
-      currentId = id;
-      history.replaceState(null, "", `?id=${id}`);
+      currentId = ship.shipmentId;
+      input.value = currentId;
+      history.replaceState(null, "", `?id=${currentId}`);
+
       ui.$("#d-id").textContent = `#${ship.shipmentId}`;
-      ui.clear(ui.$("#d-status")).append(ui.badge(ship.status));
+      const route = ui.clear(ui.$("#d-route"));
+      route.append(ship.sender.city, ui.icon("arrow"), ship.receiver.city);
+      ui.$("#d-sub").textContent = `${ship.shipmentType} · Booked ${ship.bookingDate} at ${ship.bookedAt}`;
+      ui.clear(ui.$("#d-status")).append(ui.badge(ship.status || "BOOKED"));
+
+      ui.timeline(ui.$("#timeline"), journey, ship.status);
+      ui.routeMap(ui.$("#map"), ui.mapData(ship, journey));
+      ui.etaCard(ui.$("#eta"), ship);
+      ui.$("#map-link").href = `/live.html?id=${currentId}`;
+
       const dl = ui.clear(ui.$("#details"));
-      const rows = [
-        ["Type", ship.shipmentType], ["Booked", `${ship.bookingDate} at ${ship.bookedAt}`],
+      for (const [k, v] of [
         ["Sender", `${ship.sender.firstName} ${ship.sender.lastName} (${ship.sender.city})`],
         ["Receiver", `${ship.receiver.firstName} ${ship.receiver.lastName} (${ship.receiver.city})`],
         ["Weight", `${ship.weightKg} kg`], ["Amount", String(ship.totalAmount)],
-        ["Now at", ship.place ? `${ship.place} (since ${ship.since})` : "No events yet"],
         ["Payment", ship.payment ? `${ship.payment.amount} ${ship.payment.mode} · ${ship.payment.status}` : "No payment recorded"],
-      ];
-      for (const [k, v] of rows) dl.append(ui.el("dt", {}, k), ui.el("dd", {}, v));
-
-      const tl = ui.clear(ui.$("#timeline"));
-      for (const j of journey) {
-        tl.append(ui.el("li", {}, ui.badge(j.status), ` ${j.place}`, ui.el("div", { class: "muted small" }, j.time)));
-      }
-      if (!journey.length) tl.append(ui.el("li", { class: "muted" }, "No tracking events yet."));
+      ]) dl.append(ui.el("dt", {}, k), ui.el("dd", {}, v));
 
       ui.table(ui.$("#packages"), [
         { key: "packageId", label: "Id" }, { key: "description", label: "Description" },
-        { key: "packageType", label: "Type" }, { key: "dimensions", label: "Dimensions" },
-        { key: "weightKg", label: "Kg" },
+        { key: "packageType", label: "Type" }, { key: "weightKg", label: "Kg" },
       ], ship.packages, "No packages.");
+
+      ui.$("#delivered-link").hidden = ship.status !== "DELIVERED";
+      ui.$("#delivered-a").href = `/delivered.html?id=${currentId}`;
 
       ui.$("#result").hidden = false;
       ui.graph(ui.clear(ui.$("#graph")), graph, { layout: { hierarchical: { direction: "LR", sortMethod: "directed", levelSeparation: 160 } }, physics: false });
@@ -54,13 +64,14 @@
     }
   }
 
-  ui.$("#track-form").addEventListener("submit", (e) => { e.preventDefault(); load(ui.$("#sid").value); });
+  ui.$("#copy-id").addEventListener("click", () => ui.copy(String(currentId)));
+  ui.$("#share").addEventListener("click", () => ui.copy(`${location.origin}/track.html?id=${currentId}`));
 
   if (staff) {
-    const [branches] = await Promise.all([api.get("/api/branches")]);
+    const branches = await api.get("/api/branches");
     ui.fill(ui.$("#ev-branch"), branches, "name", "name");
     for (const s of ["BOOKED", "PICKED_UP", "IN_TRANSIT", "AT_BRANCH", "OUT_FOR_DELIVERY", "DELIVERED", "DELAYED", "CANCELLED"]) {
-      ui.$("#ev-status").append(ui.el("option", { value: s }, s));
+      ui.$("#ev-status").append(ui.el("option", { value: s }, ui.label(s)));
     }
     for (const m of ["UPI", "CARD", "NETBANKING", "CASH"]) ui.$("#pay-mode").append(ui.el("option", { value: m }, m));
     for (const s of ["PAID", "PENDING"]) ui.$("#pay-status").append(ui.el("option", { value: s }, s));
@@ -70,7 +81,7 @@
       try {
         const r = await api.post(`/api/shipments/${currentId}/events`, { status: ui.$("#ev-status").value, branch: ui.$("#ev-branch").value });
         await load(currentId);
-        ui.message(msg, `Added event ${r.eventId}: ${r.status} at ${r.place}.`, "ok");
+        ui.message(msg, `Added event ${r.eventId}: ${ui.label(r.status)} at ${r.place}.`, "ok");
       } catch (err) { ui.message(msg, err.message); }
     });
     ui.$("#pay-form").addEventListener("submit", async (e) => {
@@ -85,5 +96,5 @@
   }
 
   const initial = ui.qs("id");
-  if (initial) { ui.$("#sid").value = initial; load(initial); }
+  if (initial) load(initial);
 })();

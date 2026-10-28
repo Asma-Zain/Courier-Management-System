@@ -10,7 +10,7 @@
 <main><p class="muted">Loading…</p></main>
 <script src="/js/api.js"></script>
 <script>
-api.get("/api/auth/me").then(() => { location.replace("/dashboard.html"); },
+api.get("/api/auth/me").then(() => { location.replace("/home.html"); },
                              () => { location.replace("/login.html"); });
 </script>
 </body>

@@ -19,7 +19,8 @@ def list_shipments(user: dict) -> list[dict]:
                s.shipmentType AS shipmentType, s.weightKg AS weightKg, s.totalAmount AS totalAmount,
                snd.firstName + ' ' + snd.lastName AS sender,
                rcv.firstName + ' ' + rcv.lastName AS receiver,
-               cur.status AS status, curBranch.name AS place
+               snd.city AS senderCity, rcv.city AS receiverCity,
+               cur.status AS status, curBranch.name AS place, toString(cur.eventTime) AS since
         ORDER BY shipmentId
         """,
         access_params(user),

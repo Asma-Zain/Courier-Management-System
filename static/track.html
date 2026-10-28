@@ -3,24 +3,41 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Track · Courier Tracking</title>
+  <title>Track · Parcelly</title>
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/css/theme.css">
 </head>
 <body>
 <main>
-  <h1>Track a shipment</h1>
   <div id="msg" hidden></div>
-  <form id="track-form" class="card row">
-    <label>Shipment id <input id="sid" type="number" min="1" required></label>
-    <button type="submit">Track</button>
-  </form>
+  <div id="search-slot" class="card"></div>
   <section id="result" hidden>
-    <div class="grid">
-      <div class="card"><h2>Shipment <span id="d-id"></span> <span id="d-status"></span></h2><dl class="facts" id="details"></dl></div>
-      <div class="card"><h2>Journey</h2><ol class="timeline" id="timeline"></ol></div>
+    <div class="card summary">
+      <img src="/img/box.svg" alt="">
+      <div class="info">
+        <div class="id-line"><span id="d-id"></span><button class="icon copy-btn" id="copy-id" type="button" aria-label="Copy shipment ID"></button></div>
+        <div class="route-line" id="d-route"></div>
+        <div class="sub" id="d-sub"></div>
+      </div>
+      <div class="tools"><span id="d-status"></span><button class="icon" id="share" type="button" aria-label="Copy link to this shipment"></button></div>
     </div>
-    <div class="card"><h2>Packages</h2><div id="packages"></div></div>
-    <div class="card"><h2>Journey graph</h2><div id="graph" class="graph"></div></div>
+    <div class="split">
+      <div class="card"><h2>Journey</h2><ol class="timeline" id="timeline"></ol></div>
+      <div class="card map-card">
+        <div class="map-stage">
+          <div class="route-map" id="map"></div>
+          <div class="map-eta" id="eta"></div>
+          <a class="button map-btn" id="map-link" href="#">View on map</a>
+        </div>
+        <div class="map-note">Route drawn from this shipment's scan locations. Not live GPS.</div>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><h2>Details</h2><dl class="facts" id="details"></dl></div>
+      <div class="card"><h2>Packages</h2><div id="packages"></div></div>
+    </div>
+    <div class="card" id="delivered-link" hidden><div class="row between"><span>This parcel has been delivered.</span><a class="button" id="delivered-a" href="#">See confirmation</a></div></div>
+    <div class="card"><h2>Graph view</h2><div id="graph" class="graph"></div></div>
     <div class="grid" id="staff-forms" hidden>
       <form class="card" id="event-form">
         <h2>Add tracking event</h2>

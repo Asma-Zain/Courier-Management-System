@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410 370" role="img" aria-hidden="true"><ellipse cx="205" cy="338" rx="105" ry="13" fill="#000" opacity=".4"/>
+  <polygon points="80,110 200,165 200,285 80,230" fill="#FFB48A"/>
+  <polygon points="200,165 320,110 320,230 200,285" fill="#F08F5C"/>
+  <polygon points="200,60 320,110 200,165 80,110" fill="#FFD6B8"/>
+  <polygon points="127,80 153,90 273,143 247,132" fill="#F4A56F"/>
+  <polygon points="248,180 298,158 298,190 248,212" fill="#FFF1E4"/>
+  <path d="M258 188 L288 175 M258 197 L280 187" stroke="#E57F4B" stroke-width="3" stroke-linecap="round"/>
+  <g stroke="#E57F4B" stroke-width="11" stroke-linecap="round" fill="none">
+    <path d="M125 252 L116 298"/><path d="M170 273 L178 316"/>
+  </g>
+  <ellipse cx="112" cy="302" rx="15" ry="8" fill="#E57F4B"/><ellipse cx="182" cy="320" rx="15" ry="8" fill="#E57F4B"/>
+  <path d="M82 205 Q50 190 44 160" stroke="#E57F4B" stroke-width="11" stroke-linecap="round" fill="none"/><circle cx="44" cy="156" r="10" fill="#E57F4B"/>
+  <path d="M318 195 Q350 202 358 228" stroke="#E57F4B" stroke-width="11" stroke-linecap="round" fill="none"/><circle cx="359" cy="232" r="10" fill="#E57F4B"/>
+  <ellipse cx="110" cy="196" rx="6" ry="8" fill="#2B1710"/><ellipse cx="156" cy="217" rx="6" ry="8" fill="#2B1710"/>
+  <circle cx="112" cy="193" r="2" fill="#fff"/><circle cx="158" cy="214" r="2" fill="#fff"/>
+  <path d="M120 224 Q134 242 150 234" stroke="#2B1710" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <ellipse cx="96" cy="214" rx="9" ry="6" fill="#FF827D" opacity=".7"/><ellipse cx="170" cy="240" rx="9" ry="6" fill="#FF827D" opacity=".7"/><g fill="#34343A"><circle cx="30" cy="70" r="14"/><circle cx="46" cy="62" r="18"/><circle cx="66" cy="70" r="14"/><rect x="22" y="70" width="58" height="14" rx="7"/></g><g fill="#34343A"><circle cx="300" cy="300" r="14"/><circle cx="316" cy="292" r="18"/><circle cx="336" cy="300" r="14"/><rect x="292" y="300" width="58" height="14" rx="7"/></g><g><path d="M350 134 C324 104 324 70 350 70 C376 70 376 104 350 134Z" fill="#FFB36B"/><circle cx="350" cy="92" r="9" fill="#0D0D0F"/></g><path d="M300 45.6 C284 32.0 296.8 24 300 34.4 C303.2 24 316 32.0 300 45.6Z" fill="#FF827D"/><g stroke="#FF827D" stroke-width="5" stroke-linecap="round" fill="none"><path d="M18 235 L34 228"/><path d="M14 255 L36 252"/><path d="M382 175 L396 168"/></g><path d="M120 345 Q250 360 360 330" stroke="#FFD17B" stroke-width="4" stroke-linecap="round" fill="none"/>
+</svg>

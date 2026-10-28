@@ -36,7 +36,7 @@
         { key: "shipment", label: "Shipment", render: r => ui.el("a", { href: `/track.html?id=${r.shipment}` }, String(r.shipment)) },
         { key: "status", label: "Status", render: r => ui.badge(r.status) },
         { key: "place", label: "Place" },
-        { key: "since", label: "Since" },
+        { key: "since", label: "Since", render: r => ui.fmtTime(r.since) },
       ], board);
     } else {
       ui.$("#customer-only").hidden = false;

@@ -1,6 +1,6 @@
 # Courier Tracking System: Neo4j (DA3)
 
-Graph-database version of the Courier Tracking System (BACSE202), with the original Cypher scripts, a command line app and a **web app (FastAPI + plain HTML/JS, dark theme)**.
+Graph-database version of the Courier Tracking System (BACSE202), with the original Cypher scripts, a command line app and a **web app (FastAPI + plain HTML/JS) styled after the Parcelly dark UI**.
 
 ## What is in this repo
 | Path | Purpose |
@@ -42,6 +42,13 @@ Tests hit the real Aura database but only create customers 9001/9002 and what th
 
 ## Features
 Login with roles; dashboard; customers CRUD; book a shipment with several packages in one transaction; tracking timeline + graph picture; add tracking events; current status board; fewest-hops and fewest-km routes; hub impact; reports G7-G16; payments. Customers only see shipments they sent or received (enforced on the server with `EXISTS {}`; the menu also hides staff pages).
+
+## UI notes
+* Pages: Home, Track, My Parcels / All Parcels, Live Tracking, Delivered, Send (book), Routes, plus staff pages (Hub impact, Reports, Customers, Dashboard).
+* The database stores scans, not GPS or coordinates. The "map" is a route drawn from the real scan places (booking branch, each scan location, receiver city) and is labelled as such. There is no ETA field either, so the ETA card shows the last scan and how long ago it was.
+* "Upcoming" timeline steps are only the standard statuses not reached yet, with no invented times. "Delivered" only shows when the data says DELIVERED.
+* Brand name is the `BRAND` constant at the top of `static/js/ui.js` (page titles and the login heading are plain HTML).
+* Fonts (Nunito, Inter, Gaegu) load from Google Fonts; the app falls back to system fonts offline.
 
 ## Design notes
 * Neo4j Aura Free has no NOT NULL / CHECK constraints, so required fields, positive weights/amounts and the status / type / mode whitelists are enforced in Pydantic (`backend/schemas.py`). Uniqueness comes from the database constraints; a `ConstraintError` becomes HTTP 409.
