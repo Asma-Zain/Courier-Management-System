@@ -49,10 +49,17 @@ class PackageIn(Strict):
     weightKg: float = Field(gt=0, le=1000, examples=[2.0])
 
 
+class BookingPayment(Strict):
+    mode: PaymentMode = Field(examples=["UPI"])
+    status: PaymentStatus = Field("PAID", examples=["PAID"])
+
+
 class ShipmentCreate(Strict):
     sender: Optional[int] = Field(None, gt=0, description="Customer id. Customers always send as themselves.",
                                   examples=[1])
-    receiver: int = Field(gt=0, examples=[2])
+    receiver: Optional[int] = Field(None, gt=0, examples=[2])
+    receiverEmail: Optional[str] = Field(None, max_length=120, examples=["priya@example.com"])
+    payment: Optional[BookingPayment] = Field(None, description="Staff only: record the payment at booking.")
     branchId: int = Field(gt=0, description="Booking branch id.", examples=[1])
     shipmentType: ShipmentType = Field(examples=["STANDARD"])
     packages: list[PackageIn] = Field(min_length=1, max_length=50)
@@ -61,6 +68,7 @@ class ShipmentCreate(Strict):
 
 class EventCreate(Strict):
     status: Status = Field(examples=["IN_TRANSIT"])
+    note: Optional[str] = Field(None, max_length=200, description="Optional note shown in the journey.")
     branch: str = Field(min_length=1, max_length=80, description="Branch or hub name.",
                         examples=["Hyderabad Hub"])
 

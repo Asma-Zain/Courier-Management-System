@@ -1,9 +1,10 @@
-"""Tests run against the real Aura database but only touch test ids (customers 9001/9002 and
-whatever they send). A cleanup runs before and after the session, then baseline counts are checked."""
+"""DB tests run against the real Aura database but only touch test ids (customers 9001/9002 and
+whatever they send). Cleanup runs before and after, then the baseline counts are asserted.
+Without NEO4J credentials (for example in CI) the DB tests are skipped."""
 import pytest
 from fastapi.testclient import TestClient
 
-from backend import db
+from backend import config, db, ratelimit
 from backend.main import app
 
 BASELINE = {"Branch": 6, "Customer": 4, "Employee": 3, "Package": 7, "Payment": 5,
@@ -29,8 +30,15 @@ def cleanup() -> None:
     db.write(work)
 
 
-@pytest.fixture(scope="session", autouse=True)
-def _session_cleanup():
+@pytest.fixture(autouse=True)
+def _fresh_rate_limits():
+    ratelimit.reset()
+
+
+@pytest.fixture(scope="session")
+def dbclean():
+    if not (config.NEO4J_URI and config.NEO4J_PASSWORD and config.APP_SECRET):
+        pytest.skip("Neo4j credentials not configured")
     with TestClient(app):
         cleanup()
         yield

@@ -3,7 +3,10 @@ from neo4j.exceptions import ConstraintError
 from .. import db
 from ..errors import Conflict, NotFound
 
-RETURN_CUSTOMER = """RETURN c.customerId AS customerId, c.firstName AS firstName, c.lastName AS lastName,
+RETURN_CUSTOMER = """
+CALL { WITH c MATCH (s:Shipment) WHERE EXISTS { (c)-[:SENT]->(s) } OR EXISTS { (s)-[:ADDRESSED_TO]->(c) }
+       RETURN count(s) AS shipments }
+RETURN shipments, c.customerId AS customerId, c.firstName AS firstName, c.lastName AS lastName,
        c.email AS email, c.phone AS phone, c.street AS street, c.city AS city,
        c.state AS state, c.pincode AS pincode"""
 
@@ -19,16 +22,21 @@ def get_customer(customer_id: int) -> dict:
     return rows[0]
 
 
-def lookup_by_email(email: str) -> dict:
-    """Minimal public-to-logged-in view (id and name only) so a sender can pick a receiver."""
+def lookup_by_email(user: dict, email: str) -> dict:
+    """Privacy: customers only learn that an account exists and a short display name ("Priya S.").
+    Staff also get the id, full name and city."""
     rows = db.read(
-        "MATCH (c:Customer {email: $email}) "
-        "RETURN c.customerId AS customerId, c.firstName + ' ' + c.lastName AS name, c.city AS city",
+        "MATCH (c:Customer {email: $email}) RETURN c.customerId AS customerId, c.firstName AS first, "
+        "c.lastName AS last, c.city AS city",
         {"email": email.strip().lower()},
     )
     if not rows:
-        raise NotFound("No customer with that email.")
-    return rows[0]
+        return {"exists": False}
+    r = rows[0]
+    out = {"exists": True, "displayName": f"{r['first']} {r['last'][:1]}."}
+    if user["role"] == "STAFF":
+        out.update(customerId=r["customerId"], name=f"{r['first']} {r['last']}", city=r["city"])
+    return out
 
 
 def create_customer(data: dict) -> dict:

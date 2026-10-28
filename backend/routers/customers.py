@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, Request
 
-from .. import auth
+from .. import auth, ratelimit
 from ..errors import Forbidden
 from ..schemas import CustomerCreate, CustomerUpdate
 from ..services import branches as branch_service
@@ -26,9 +26,11 @@ def create_customer(body: CustomerCreate, user: dict = Depends(auth.staff_only))
 
 
 @router.get("/customers/lookup", summary="Find a customer id by email (any logged-in user)")
-def lookup(email: str, user: dict = Depends(auth.current_user)):
-    """Returns only id, name and city. Used by the booking form to pick a receiver."""
-    return svc.lookup_by_email(email)
+def lookup(request: Request, email: str = Query(..., max_length=120), user: dict = Depends(auth.current_user)):
+    """Customers get {exists, displayName} only; staff also get id, name and city. Rate limited."""
+    ratelimit.check(f"lookup:user:{user['role']}{user['id']}", 30)
+    ratelimit.check(f"lookup:ip:{request.client.host if request.client else '-'}", 60)
+    return svc.lookup_by_email(user, email)
 
 
 @router.get("/customers/{customer_id}", summary="Get a customer (staff, or the customer themself)")

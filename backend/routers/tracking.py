@@ -16,4 +16,10 @@ def track(shipment_id: int, user: dict = Depends(auth.current_user)):
 @router.post("/{shipment_id}/events", status_code=201, summary="Append a tracking event (staff)")
 def add_event(shipment_id: int, body: EventCreate, user: dict = Depends(auth.staff_only)):
     """Query C4: creates HAS_EVENT, NEXT, AT and LOGGED in one transaction."""
-    return svc.add_event(user, shipment_id, body.status, body.branch)
+    return svc.add_event(user, shipment_id, body.status, body.branch, body.note)
+
+
+@router.get("/{shipment_id}/next-statuses", summary="Valid next statuses (staff)")
+def next_statuses(shipment_id: int, user: dict = Depends(auth.staff_only)):
+    """The server-side status order: only these statuses are accepted by POST /events."""
+    return svc.next_statuses(shipment_id)

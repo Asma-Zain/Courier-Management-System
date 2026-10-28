@@ -42,3 +42,15 @@ def staff_only(user: dict = Depends(current_user)) -> dict:
     if user["role"] != "STAFF":
         raise HTTPException(status_code=403, detail="Staff only.")
     return user
+
+
+def session(request: Request) -> dict | None:
+    """Signed-cookie check without a database call (used by page routes)."""
+    token = request.cookies.get(COOKIE_NAME)
+    if not token:
+        return None
+    try:
+        data = _serializer().loads(token, max_age=config.SESSION_HOURS * 3600)
+    except BadSignature:
+        return None
+    return {"role": data["role"], "id": data["id"]}

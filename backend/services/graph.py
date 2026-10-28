@@ -10,7 +10,7 @@ def shipment_graph(user: dict, shipment_id: int) -> dict:
         MATCH (s:Shipment {shipmentId: $sid})-[:HAS_EVENT]->(t:TrackingEvent)-[:AT]->(b:Branch)
         OPTIONAL MATCH (t)-[:NEXT]->(n:TrackingEvent)
         RETURN s.shipmentId AS sid, s.shipmentType AS stype,
-               t.eventId AS eventId, t.seq AS seq, t.status AS status, toString(t.eventTime) AS time,
+               t.eventId AS eventId, t.seq AS seq, t.status AS status, t.eventTime AS time,
                b.branchId AS branchId, b.name AS branch, b.kind AS kind, n.eventId AS nextId
         ORDER BY t.seq
         """,
@@ -26,7 +26,8 @@ def shipment_graph(user: dict, shipment_id: int) -> dict:
     add({"id": f"shipment:{shipment_id}", "label": f"Shipment {shipment_id}", "group": "Shipment"})
     for r in rows:
         eid, bid = f"event:{r['eventId']}", f"branch:{r['branchId']}"
-        add({"id": eid, "label": f"{r['seq']}. {r['status']}", "group": "TrackingEvent", "title": r["time"]})
+        add({"id": eid, "label": f"{r['seq']}. {r['status'].replace('_', ' ').capitalize()}",
+             "group": "TrackingEvent", "title": r["time"], "status": r["status"]})
         add({"id": bid, "label": r["branch"], "group": r["kind"] or "Branch"})
         edges.append({"from": f"shipment:{shipment_id}", "to": eid, "label": "HAS_EVENT"})
         edges.append({"from": eid, "to": bid, "label": "AT"})

@@ -1,7 +1,9 @@
 """Neo4j driver singleton plus small read/write helpers (managed transactions)."""
+from datetime import timezone
 from typing import Any, Callable
 
 from neo4j import GraphDatabase
+from neo4j.time import DateTime
 
 from . import config
 
@@ -30,7 +32,11 @@ def clean(value: Any) -> Any:
         return {k: clean(v) for k, v in value.items()}
     if isinstance(value, (list, tuple)):
         return [clean(v) for v in value]
-    if hasattr(value, "iso_format"):      # neo4j.time.DateTime / Time
+    if isinstance(value, DateTime):       # always send UTC; the browser shows Indian time
+        if value.tzinfo is None:
+            return value.iso_format()
+        return value.to_native().astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+    if hasattr(value, "iso_format"):      # other neo4j temporal types
         return value.iso_format()
     if hasattr(value, "isoformat"):       # neo4j.time.Date
         return value.isoformat()
