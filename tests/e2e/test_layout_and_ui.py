@@ -24,7 +24,7 @@ def check_pages(browser, email, pages, widths, tag):
         try:
             for path in pages:
                 page.goto(f"{BASE}{path}")
-                page.wait_for_load_state("networkidle")
+                page.wait_for_load_state("load")
                 page.wait_for_timeout(1500)
                 scroll, inner = overflow(page)
                 assert scroll <= inner, f"{tag} {path} at {w}px scrolls sideways ({scroll} > {inner})"
@@ -51,12 +51,14 @@ def test_device_emulation(server, browser, playwright_instance, device):
         try:
             for path in pages:
                 page.goto(f"{BASE}{path}")
-                page.wait_for_load_state("networkidle")
+                page.wait_for_load_state("load")
                 page.wait_for_timeout(1200)
                 scroll, inner = overflow(page)
                 assert scroll <= inner, f"{device} {email} {path}: {scroll} > {inner}"
                 assert page.locator(".site-header .avatar").is_visible()        # account menu never pushed off-screen
                 assert page.locator(".head-primary").is_visible()               # primary action stays reachable
+                if email.startswith("arun") and path == "/shipments/1":
+                    assert not page.locator("#fab").is_visible()                # customers have no staff Actions button
                 if SHOTS:
                     pathlib.Path(SHOTS).mkdir(parents=True, exist_ok=True)
                     page.screenshot(path=f"{SHOTS}/{device.split()[0]}_{email[:4]}_{path.strip('/').replace('/', '_').replace('?', '_') or 'home'}.png", full_page=True)
@@ -68,6 +70,7 @@ def test_customer_dialog_stays_open_with_inline_errors(server, browser):
     ctx, page = login(browser, "divya@courier.com")
     try:
         page.goto(f"{BASE}/customers")
+        page.wait_for_selector("#add")                                  # appears once the page is ready
         page.click("#add")
         dlg = page.locator("dialog")
         dlg.wait_for()
@@ -97,7 +100,7 @@ def test_customer_dialog_stays_open_with_inline_errors(server, browser):
         assert dlg.is_visible() and "already exists" in dlg.locator(".form-error").inner_text()
         # Escape closes it and focus goes back to the button that opened it
         page.keyboard.press("Escape")
-        assert page.locator("dialog").count() == 0
+        page.wait_for_selector("dialog", state="detached")
         assert page.evaluate("document.activeElement.id") == "add"
     finally:
         ctx.close()
@@ -132,16 +135,21 @@ def test_keyboard_tabs_menu_and_delivered_confirmation(server, browser):
 
 
 def test_label_prints_on_one_page_with_qr(server, browser):
+    import re
     ctx, page = login(browser, "divya@courier.com")
     try:
         page.goto(f"{BASE}/shipments/10000")
         page.wait_for_selector("#print-label")
-        page.evaluate("document.querySelector('#print-label').click()")        # builds the label then calls print()
+        page.evaluate("window.print = () => {}")                                  # headless: keep the label on screen
+        page.click("#print-label")
         page.wait_for_selector(".print-only img.print-qr", state="attached")
+        assert page.get_attribute(".print-only img.print-qr", "src").startswith("data:image/")
+        assert page.get_attribute(".print-only img.print-qr", "alt")
         page.emulate_media(media="print")
-        pdf = page.pdf()
-        assert pdf.count(b"/Type /Page\n") + pdf.count(b"/Type /Page ") + pdf.count(b"/Type/Page/") <= 1 or pdf.count(b"/Type /Pages") == 1
         assert page.locator(".print-only").is_visible()
-        assert not page.locator(".site-header").is_visible()
+        assert not page.locator(".site-header").is_visible()                      # only the label prints
+        assert "10000" in page.locator(".print-only").inner_text()
+        pdf = page.pdf()
+        assert len(re.findall(rb"/Type\s*/Page[^s]", pdf)) == 1                  # one page
     finally:
         ctx.close()

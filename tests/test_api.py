@@ -310,7 +310,10 @@ def test_readyz_and_account_info(staff, arun):
 def test_pages_server_side_access(staff, arun):
     assert staff.get("/").status_code == 200 and "Overview" in staff.get("/").text
     assert staff.get("/shipments/2").status_code == 200
-    assert staff.get("/shipments/424242").status_code == 404
+    # staff skip the ownership lookup for speed: the page loads and shows the API's 404 for an unknown id
+    assert staff.get("/shipments/424242").status_code == 200
+    assert staff.get("/api/shipments/424242").status_code == 404
+    assert arun.get("/shipments/424242").status_code == 404                  # customers still get a real 404 page
     assert arun.get("/shipments/2").status_code == 403 and "text/html" in arun.get("/shipments/2").headers["content-type"]
     assert arun.get("/shipments/1").status_code == 200
     for path in ("/customers", "/customers/1", "/network", "/reports", "/reports/delayed"):

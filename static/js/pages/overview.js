@@ -38,7 +38,8 @@
     const nodes = net.nodes.map(n => ({ ...n, label: `${n.label} (${waiting[n.label] ?? 0})`, size: 14 + 4 * Math.min(waiting[n.label] ?? 0, 5) }));
     const placed = ui.placeNetwork(nodes);
     const g = ui.graph(ui.$("#hubmap"), { nodes: placed.nodes, edges: net.edges.map(e => ({ ...e, label: "", arrows: "" })) },
-      { physics: placed.known ? false : { solver: "forceAtlas2Based", forceAtlas2Based: { springLength: 170, gravitationalConstant: -70 } } });
+      { nodes: { shape: "dot", margin: 8, font: { color: ui.cssVar("--c-text"), size: 24, strokeWidth: 5, strokeColor: ui.cssVar("--c-bg") } },
+        physics: placed.known ? false : { solver: "forceAtlas2Based", forceAtlas2Based: { springLength: 170, gravitationalConstant: -70 } } });
     if (g) g.on("click", (p) => {
       if (!p.nodes.length) return;
       const n = nodes.find(x => x.id === p.nodes[0]);

@@ -422,3 +422,5 @@ main { min-width: 0; }
   .head-search { order: 5; flex: 1 1 100%; max-width: none; margin-left: 0; }
 }
 .error-page .row { justify-content: center; }
+.actions-fab[hidden] { display: none !important; }
+.graph.compact { height: 340px; }

@@ -3,6 +3,7 @@
   if (!user) return;
   const msg = ui.$("#msg"), list = ui.$("#list"), q = ui.$("#q");
   ui.$("#add").append(ui.icon("plus"), " Add customer");
+  ui.$("#add").hidden = false;                  // shown only once the page can respond to it
   let all = [];
 
   function render() {

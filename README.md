@@ -83,6 +83,14 @@ Tests that write use customers 9001 / 9002 and what they send, delete it all aft
 
 * Customer lookup by email (for choosing a receiver) returns only `{exists, displayName}` to customers ("Priya S."); staff also get id, name and city. Rate limited (30 per minute per session, 60 per IP).
 
+## Performance and UI notes
+
+* API calls cache the session user for 30 seconds and the branch list for 5 minutes; shipment, journey and graph queries do the access check inside the main query (one round trip). Requests slower than 1 second are logged as `SLOW` and every response has a `Server-Timing` header.
+* The booking form offers branches only (not hubs) and defaults to the sender's city. Add event starts with no status chosen, and Delivered / Cancelled ask for confirmation.
+* The print label (shipment page > Print label) includes a QR code of the tracking link (vendored `qrcode-generator`, see `static/vendor/README.md`).
+* Reports show full names. Reports 8, 9 and 15 return full names instead of first names, so their Cypher differs slightly from `04_graph_queries.cypher`; the "Show query" panel shows the exact query that runs.
+* Layout is checked by Playwright at 375, 768, 1024 and 1280 px and on iPhone 13, Pixel 7 and iPad emulation: no page scrolls sideways.
+
 ## Security
 
 * Cookie: `HttpOnly`, `SameSite=Lax`, `Secure` in production, 8 hour expiry, signed with `APP_SECRET`.

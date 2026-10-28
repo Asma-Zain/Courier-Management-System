@@ -53,6 +53,8 @@ def test_staff_flow_and_customer_scope(server, browser):
             assert ("Delivered" in options) == (status == "DELIVERED"), options
             page.select_option("#ev-status", value=status)
             page.click("#ev-submit")
+            if status == "DELIVERED":                       # final status: the app asks first
+                page.get_by_role("button", name="Mark delivered").click()
             page.wait_for_selector(f".toast:has-text('{status.replace('_', ' ').capitalize()}')")
         assert page.locator("#ev-submit").is_disabled()
 
