@@ -49,6 +49,7 @@ Open http://127.0.0.1:8000 (API docs at `/docs` in development). The database mu
 | `ENABLE_DOCS` | `true` to expose `/docs`, `/redoc`, `/openapi.json` in production |
 | `ALLOWED_ORIGINS` | comma separated origins allowed for CORS and the CSRF check |
 | `LOG_LEVEL` | `INFO` (default) |
+| `SHOW_DEMO_LOGINS` | `true` shows the clickable demo emails on the login page (default: on in development, off in production) |
 | `SITE_ADDRESS` | hostname for Caddy (compose only), for example `85-211-182-145.sslip.io` |
 
 ### Demo logins (email only, no password)
@@ -125,6 +126,7 @@ The container only needs outbound access to Aura over `neo4j+s://`. Compose forc
 1. Push this repo to GitHub (done). Sign in at https://render.com with GitHub.
 2. **New > Blueprint**, pick this repository. Render reads `render.yaml` (Docker, free plan, health check `/healthz`).
 3. When asked, enter the four secrets: `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`, `NEO4J_DATABASE` (the same values as in `app/.env`). `APP_SECRET` is generated for you and `APP_ENV` is already `production`.
+3b. Optional, for a demo: add `SHOW_DEMO_LOGINS` = `true` so the login page shows the clickable demo emails. Anyone who opens the site can then log in as staff and change data, so turn it off afterwards.
 4. Deploy. When it is live, open `https://<your-service>.onrender.com` and check `/healthz` and `/readyz`.
 
 The container listens on Render's `PORT` automatically. Render's free web service sleeps after about 15 minutes idle (first load takes up to a minute) and the free Aura database pauses too: open both a few minutes before a demo. Never put the secrets in git; they live only in Render's dashboard.

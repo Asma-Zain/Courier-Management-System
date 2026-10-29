@@ -24,6 +24,8 @@ NEO4J_DATABASE = os.getenv("NEO4J_DATABASE", "neo4j")
 APP_SECRET = os.getenv("APP_SECRET", "")
 COOKIE_SECURE = IS_PROD or _bool("COOKIE_SECURE", False)
 ENABLE_DOCS = _bool("ENABLE_DOCS", not IS_PROD)
+# Clickable demo logins on the login page. On by default in development, off in production unless enabled.
+SHOW_DEMO_LOGINS = _bool("SHOW_DEMO_LOGINS", not IS_PROD)
 ALLOWED_ORIGINS = [o.strip().rstrip("/") for o in
                    (os.getenv("ALLOWED_ORIGINS") or os.getenv("CORS_ORIGINS", "")).split(",") if o.strip()]
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()

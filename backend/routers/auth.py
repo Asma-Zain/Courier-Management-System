@@ -36,4 +36,4 @@ def me(user: dict = Depends(auth.current_user)):
 
 @router.get("/config", summary="Public UI settings")
 def public_config():
-    return {"env": config.APP_ENV, "demoLogins": not config.IS_PROD, "docs": config.ENABLE_DOCS}
+    return {"env": config.APP_ENV, "demoLogins": config.SHOW_DEMO_LOGINS, "docs": config.ENABLE_DOCS}

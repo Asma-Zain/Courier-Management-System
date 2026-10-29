@@ -80,3 +80,11 @@ def test_anonymous_pages_and_errors():
 def test_csrf_blocks_foreign_origin():
     r = TestClient(app).post("/api/auth/logout", headers={"Origin": "https://evil.example"})
     assert r.status_code == 403 and r.json()["code"] == "CSRF"
+
+
+def test_demo_login_chips_follow_the_setting(monkeypatch):
+    from backend import config
+    monkeypatch.setattr(config, "SHOW_DEMO_LOGINS", True)
+    assert client.get("/api/auth/config").json()["demoLogins"] is True
+    monkeypatch.setattr(config, "SHOW_DEMO_LOGINS", False)
+    assert client.get("/api/auth/config").json()["demoLogins"] is False
