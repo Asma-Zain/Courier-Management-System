@@ -396,7 +396,9 @@ main { min-width: 0; }
 .skeleton-wrap { display: block; }
 .package-list .sub, .impact-list .sub { display: block; }
 .total-line + .form-error, .total-line { margin-bottom: var(--space-3); }
-.review-actions { margin-top: var(--space-4); }
+.review-actions { margin-top: var(--space-4); position: sticky; bottom: 0; background: var(--c-surface); padding: var(--space-3) 0; border-top: 1px solid var(--c-border); }
+@media (max-width: 960px) { .review-actions { bottom: 76px; } }
+button[aria-disabled="true"] { opacity: 0.55; }
 .hint.warn { color: var(--c-butter); }
 .menu-panel .ico { color: var(--c-muted); }
 .print-qr { width: 120px; height: 120px; image-rendering: pixelated; }

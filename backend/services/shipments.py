@@ -159,6 +159,8 @@ def book_shipment(user: dict, data: dict) -> dict:
             if not found:
                 raise NotFound("No customer with that email.", code="RECEIVER_NOT_FOUND")
             receiver = found[0]["id"]
+        if receiver == data["sender"]:
+            raise BadRequest("Sender and receiver must be different customers.", code="SAME_PARTY")
         ends = db.run(
             tx,
             """

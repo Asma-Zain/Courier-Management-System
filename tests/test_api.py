@@ -267,6 +267,19 @@ def test_book_validation(staff):
     assert staff.post("/api/shipments", json={**base, "receiverEmail": "priya@example.com"}).status_code == 400  # both given
 
 
+def test_sender_and_receiver_must_differ(staff, arun):
+    body = {"sender": 1, "receiverEmail": "arun@example.com", "branchId": 1, "shipmentType": "STANDARD",
+            "packages": [{"description": "x", "dimensions": "1x1x1 cm", "packageType": "Box", "weightKg": 1}]}
+    before = counts()
+    r = staff.post("/api/shipments", json=body)
+    assert r.status_code == 400 and r.json()["code"] == "SAME_PARTY"
+    r = staff.post("/api/shipments", json={**body, "receiverEmail": None, "receiver": 1})
+    assert r.status_code == 400 and r.json()["code"] == "SAME_PARTY"
+    r = arun.post("/api/shipments", json={k: v for k, v in body.items() if k != "sender"})   # customers send as themselves
+    assert r.status_code == 400 and r.json()["code"] == "SAME_PARTY"
+    assert counts() == before                                                # nothing was created
+
+
 def test_customer_books_as_self(staff, arun):
     cleanup()
     assert staff.post("/api/customers", json=customer_body(9002, "t9002@example.com")).status_code == 201
@@ -310,10 +323,9 @@ def test_readyz_and_account_info(staff, arun):
 def test_pages_server_side_access(staff, arun):
     assert staff.get("/").status_code == 200 and "Overview" in staff.get("/").text
     assert staff.get("/shipments/2").status_code == 200
-    # staff skip the ownership lookup for speed: the page loads and shows the API's 404 for an unknown id
-    assert staff.get("/shipments/424242").status_code == 200
+    assert staff.get("/shipments/424242").status_code == 404                 # a real 404 page for everyone
     assert staff.get("/api/shipments/424242").status_code == 404
-    assert arun.get("/shipments/424242").status_code == 404                  # customers still get a real 404 page
+    assert arun.get("/shipments/424242").status_code == 404
     assert arun.get("/shipments/2").status_code == 403 and "text/html" in arun.get("/shipments/2").headers["content-type"]
     assert arun.get("/shipments/1").status_code == 200
     for path in ("/customers", "/customers/1", "/network", "/reports", "/reports/delayed"):

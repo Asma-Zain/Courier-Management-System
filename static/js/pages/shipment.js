@@ -87,7 +87,8 @@
     [nextInfo, branches] = await Promise.all([api.get(`/api/shipments/${id}/next-statuses`), branches.length ? branches : api.get("/api/branches")]);
     const none = !nextInfo.allowed.length;
     ui.$("#event-form").classList.toggle("muted", none);
-    ui.$("#ev-submit").disabled = true;
+    ui.$("#ev-submit").disabled = none;
+    setEvReady(false);
     evStatus.disabled = evBranch.disabled = ui.$("#ev-note").disabled = none;
     if (none) {
       ui.fill(evStatus, [{ s: "", l: `Final (${ui.statusLabel(nextInfo.current)})` }], "s", "l");
@@ -105,7 +106,9 @@
     done.textContent = ship.payment ? "A payment is already recorded for this shipment." : "Cancelled shipments take no payment.";
     ui.$("#pay-amount").value = ship.outstanding;
   }
-  evStatus.addEventListener("change", () => { if (nextInfo) fillBranches(); ui.$("#ev-submit").disabled = !evStatus.value; });
+  // Looks disabled until a status is chosen but stays clickable, so a click explains what is missing
+  function setEvReady(ready) { ui.$("#ev-submit").setAttribute("aria-disabled", String(!ready)); }
+  evStatus.addEventListener("change", () => { if (nextInfo) fillBranches(); setEvReady(!!evStatus.value); ui.setError(evStatus, ""); });
   for (const m of ["UPI", "CARD", "NETBANKING", "CASH"]) ui.$("#pay-mode").append(ui.el("option", { value: m }, m));
   for (const [v, l] of [["PAID", "Paid"], ["PENDING", "Pending"]]) ui.$("#pay-status").append(ui.el("option", { value: v }, l));
 

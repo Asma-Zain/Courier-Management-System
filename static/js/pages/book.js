@@ -20,7 +20,8 @@
     payNow: false, payMode: "UPI", payStatus: "PAID",
   };
 
-  const totalKg = () => Math.round(state.packages.reduce((t, p) => t + (parseFloat(p.weightKg) || 0), 0) * 100) / 100;
+  const validKg = (p) => { const w = parseFloat(p.weightKg); return w > 0 ? w : 0; };      // ignore blanks, negatives, NaN
+  const totalKg = () => Math.round(state.packages.reduce((t, p) => t + validKg(p), 0) * 100) / 100;
   const price = () => { const r = rates[state.shipmentType]; return Math.round((r.base + r.perKg * totalKg()) * 100) / 100; };
 
   // ---------------- stepper ----------------
@@ -37,10 +38,10 @@
 
   // ---------------- step 1: parties ----------------
   async function lookup(email, out) {
+    const mySeq = (lookup.seq = (lookup.seq || 0) + 1);   // newest request wins; older results are dropped
     state.receiver = null;
     ui.clear(out);
     if (!EMAIL.test(email)) return;
-    const mySeq = (lookup.seq = (lookup.seq || 0) + 1);
     out.append(ui.el("span", { class: "hint" }, "Checking…"));
     try {
       const r = await api.get("/api/customers/lookup", { email });
@@ -54,7 +55,10 @@
         if (staff) out.append(" ", ui.el("button", { type: "button", class: "link", onclick: () =>
           CustomerForm.open({ email, onSaved: () => lookup(email, out) }) }, "Add this customer"));
       }
-    } catch (err) { ui.clear(out).append(ui.el("span", { class: "chip-ok chip-bad" }, err.status === 429 ? "Too many checks, wait a moment." : err.message)); }
+    } catch (err) {
+      if (mySeq !== lookup.seq) return;
+      ui.clear(out).append(ui.el("span", { class: "chip-ok chip-bad" }, err.status === 429 ? "Too many checks, wait a moment." : err.message));
+    }
   }
 
   function step1(serverError) {
@@ -77,6 +81,7 @@
         : (!staff && v.toLowerCase() === (user.email || "").toLowerCase() ? "You cannot send a parcel to yourself." : null)]])) return;
       if (!state.receiver || state.receiver.exists === undefined) await lookup(state.receiverEmail, out);
       if (!state.receiver || !state.receiver.exists) { ui.setError(email, "No customer with this email."); email.focus(); return; }
+      if (staff && state.receiver.customerId === state.sender) { ui.setError(email, "Sender and receiver must be different."); email.focus(); return; }
       step2();
     });
     screen(ui.el("section", { class: "card" }, ui.el("h2", {}, "Who is sending to whom?"),

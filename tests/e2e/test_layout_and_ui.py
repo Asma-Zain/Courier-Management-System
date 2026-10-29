@@ -153,3 +153,70 @@ def test_label_prints_on_one_page_with_qr(server, browser):
         assert len(re.findall(rb"/Type\s*/Page[^s]", pdf)) == 1                  # one page
     finally:
         ctx.close()
+
+
+def reach_review_step(page, sender="1", receiver="priya@example.com", weight="2"):
+    page.goto(f"{BASE}/shipments/new")
+    page.wait_for_selector("select")
+    page.select_option("select >> nth=0", value=sender)
+    page.fill("input[type=email]", receiver)
+    page.wait_for_selector(".chip-ok")
+    page.click("text=Next: packages")
+    card = page.locator(".package-card").first
+    card.locator("input").nth(0).fill("Books")
+    card.locator("input").nth(1).fill("30x20x10 cm")
+    card.locator("input").nth(2).fill(weight)
+
+
+def test_booking_form_edge_cases(server, browser):
+    ctx, page = login(browser, "divya@courier.com", viewport={"width": 1280, "height": 720})
+    try:
+        # staff cannot book a parcel from Arun to Arun: stopped on step 1, nothing is created
+        page.goto(f"{BASE}/shipments/new")
+        page.wait_for_selector("select")
+        page.select_option("select >> nth=0", value="1")
+        page.fill("input[type=email]", "arun@example.com")
+        page.wait_for_selector(".chip-ok")
+        page.click("text=Next: packages")
+        assert "must be different" in page.locator(".field-error").inner_text()
+        assert page.locator(".package-card").count() == 0
+
+        # a negative weight never shows up in the total
+        reach_review_step(page, weight="-5")
+        assert "-5" not in page.locator(".total-line").inner_text()
+        assert "0 kg" in page.locator(".total-line").inner_text()
+        page.click("text=Next: review")
+        assert "at least 0.01" in page.locator(".field-error").inner_text()
+
+        # ticking "record the payment" keeps the Book button on screen
+        page.locator(".package-card").first.locator("input").nth(2).fill("2")
+        page.click("text=Next: review")
+        page.get_by_label("Record the payment now").check()
+        box = page.get_by_role("button", name="Book shipment").bounding_box()
+        assert box and box["y"] + box["height"] <= 720, box
+    finally:
+        ctx.close()
+
+
+def test_add_event_without_status_explains_itself(server, browser):
+    ctx, page = login(browser, "divya@courier.com")
+    try:
+        page.goto(f"{BASE}/shipments/10000")
+        page.wait_for_selector("#ev-status")
+        assert page.input_value("#ev-status") == ""
+        page.click("#ev-submit")                                                   # nothing chosen
+        assert "Choose the next status" in page.locator("#actions .field-error").inner_text()
+        assert page.evaluate("document.activeElement.id") == "ev-status"
+    finally:
+        ctx.close()
+
+
+def test_healthz_is_reachable_from_page_javascript(server, browser):
+    ctx, page = login(browser, "divya@courier.com")
+    try:
+        results = page.evaluate("Promise.all([fetch('/healthz'), fetch('/readyz')].map(p => p.then(r => r.status)))")
+        assert results == [200, 200]
+        for _ in range(5):   # repeat: it should never intermittently fail
+            assert page.evaluate("fetch('/healthz').then(r => r.status)") == 200
+    finally:
+        ctx.close()
