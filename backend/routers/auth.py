@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/auth", tags=["Auth"])
 def login(request: Request, body: LoginRequest, response: Response):
     """STAFF if the email matches an Employee node, CUSTOMER if it matches a Customer node, else 401.
     No password: this is a demo limitation."""
-    ratelimit.check(f"login:{request.client.host if request.client else '-'}", 10)
+    ratelimit.check(f"login:{request.client.host if request.client else '-'}", config.LOGIN_RATE_LIMIT)
     user = auth_service.login(body.email)
     if not user:
         log.warning("failed login from %s", request.client.host if request.client else "-")

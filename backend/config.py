@@ -30,6 +30,7 @@ ALLOWED_ORIGINS = [o.strip().rstrip("/") for o in
                    (os.getenv("ALLOWED_ORIGINS") or os.getenv("CORS_ORIGINS", "")).split(",") if o.strip()]
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 SESSION_HOURS = 8
+LOGIN_RATE_LIMIT = int(os.getenv("LOGIN_RATE_LIMIT", "10"))   # login attempts per minute per IP (tests raise it)
 
 STATIC_DIR = ROOT / "static"
 PAGES_DIR = STATIC_DIR / "pages"

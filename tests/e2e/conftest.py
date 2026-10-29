@@ -1,4 +1,5 @@
 """Shared Playwright fixtures: a real server on a free port and a Chrome browser."""
+import os
 import subprocess
 import sys
 import time
@@ -18,8 +19,9 @@ BASE = f"http://127.0.0.1:{PORT}"
 def server():
     if not (config.NEO4J_URI and config.NEO4J_PASSWORD and config.APP_SECRET):
         pytest.skip("Neo4j credentials not configured")
+    env = {**os.environ, "LOGIN_RATE_LIMIT": "1000"}      # the browser tests log in many times a minute
     proc = subprocess.Popen([sys.executable, "-m", "uvicorn", "backend.main:app", "--port", str(PORT)],
-                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=env)
     for _ in range(40):
         try:
             if urllib.request.urlopen(f"{BASE}/healthz", timeout=1).status == 200:
